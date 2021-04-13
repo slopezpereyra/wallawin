@@ -2,11 +2,11 @@
 It's where the magic happens."""
 
 import copy
-from random import uniform
+from random import uniform, choice
 from math import floor, dist
 from matplotlib import pyplot
 from matplotlib.patches import Circle
-from orgs import Organism
+from orgs import Organism, AltruisticOrganism
 from global_settings import ENV_SETTINGS, PLOT_SETTINGS
 
 
@@ -53,21 +53,97 @@ class Environment:
 
     @staticmethod
     def gen_population(size):
+        pass
+
+    def simulate (self):
+        pass
+
+    def fitness_function(self, org):
+        """Sets fitness of an organism according to the amount of food they ate.
+        If organism ate two or more food particles it creates a copy of itself,
+        which has a chance of mutating.
+        If organism didn't succed at getting any particle, it dies.
+        Otherwise it just survives.
+
+        Parameters
+        ---------
+        org : Organism
+            The organism to be evaluated as fit or unfit.
+        """
+
+        pass
+
+    def plot_step(self, step_num, gen_num):
+        """Function that plots a particular step of the evolutionary simulation."""
+
+        figure, axis = pyplot.subplots()
+        figure.set_size_inches(9.6, 5.4)
+
+        pyplot.xlim(PLOT_SETTINGS['X_MIN'], PLOT_SETTINGS['X_MAX'])
+        pyplot.ylim(PLOT_SETTINGS['Y_MIN'], PLOT_SETTINGS['Y_MAX'])
+
+        for org in self.generation:
+            altruistic_color = (org.altruism, 0, 0)
+            org_circle = Circle(org.pos, 0.05, edgecolor=altruistic_color, facecolor=altruistic_color, zorder=8)
+            edge = Circle(org.pos, 0.05, facecolor='None', edgecolor=altruistic_color, zorder=8)
+            pyplot.text(org.pos[0], org.pos[1] + 0.1, str(org.meals))
+            axis.add_patch(org_circle)
+            axis.add_patch(edge)
+        for food in self.food:
+            food_circle = Circle(food.pos, 0.03, edgecolor='darkslateblue', facecolor='mediumslateblue', zorder=5)
+            axis.add_patch(food_circle)
+
+        axis.set_aspect('equal')
+        frame = pyplot.gca()
+        frame.axes.get_xaxis().set_ticks([])
+        frame.axes.get_yaxis().set_ticks([])
+
+        pyplot.figtext(0.025, 0.95, r'GENERATION: ' + str(gen_num))
+        pyplot.figtext(0.025, 0.90, r'T_STEP: ' + str(step_num))
+
+        pyplot.savefig('step {}.png'.format(step_num), dpi=100)
+
+    def __str__(self):
+
+        str = """
+        Population size: {}
+        Food amount: {}""".format(self.pop_size, len(self.food))
+
+        return str
+
+
+class DepletionEnvironment (Environment):
+
+    def __init__(self, pop_size, abundance, risk=0):
+        super().__init__(pop_size, abundance, risk)
+
+    @staticmethod
+    def gen_population(size):
 
         population = [Organism() for x in range(0, size)]
         return population
 
+    def evolve(self):
+
+        for index in range(len(self.generation)):
+            org = self.generation[index]
+            self.fitness_function(org)  # Create double if ate 2 or more, preserve if ate 1, kill if 0.
+            org.pos = org.start_pos  # Restart position
+            self.food = self.gen_food()  # Regenerate the food
+
     def simulate(self):
-        """Simulate the evolution process.
+        """Simulate the evolution process where reproduction occurs
+        after organisms compete for food and all food is depleted.
 
-        It simulates evolution for as many steps as defined in ENVIRONMENTAL_SETTINGS.
+        Simulation lasts for as many steps as defined in ENVIRONMENTAL_SETTINGS.
+
         On each simulation:
-            a) it plots the environment on the particular step of the simulation,
-            with all its organisms and food particles.
-            b) Loops through the organisms and either evolves them if there's no more food in the environment
-            or makes them compete for the available food if there's any.
+            a) if PLOT_SETTINGS['PLOT'] is true, plots the environment on the particular step of the simulation.
+            b) Loop through the organisms making them compete for the available food.
+            c) If all food has been consumed, apply natural selection.
+            d) Reset position of the organisms, create more food and start again.
 
-        It evolves them by using the evolve method."""
+        """
 
         simulating, step, gen = True, 0, 0
 
@@ -77,7 +153,7 @@ class Environment:
                 self.plot_step(step, gen)
 
             for org in self.generation:
-                if not self.food:
+                if not self.food:  # If the organisms ate all the available food
                     self.evolve()
                     gen += 1
 
@@ -87,7 +163,7 @@ class Environment:
                     self.food.remove(nearest_food)
                     del nearest_food
                 else:
-                    org.update_pos(nearest_food.pos)
+                    org.move_to(nearest_food.pos)
             step += 1
             print(step)
             if step >= ENV_SETTINGS['STEPS']:
@@ -117,11 +193,81 @@ class Environment:
             del org
         pass
 
+# Maybe altruistic organisms can give food over a meal amount aboave 2
+# to any other organism, which may keep the extra meal for the next epoch?¿?
+
+
+class AltruismEnvironment (Environment):
+
+    def __init__(self, pop_size, abundance, risk=0):
+        super().__init__(pop_size, abundance, risk)
+
+    @staticmethod
+    def gen_population(size):
+        population = [AltruisticOrganism() for x in range(0, size)]
+        return population
+
+    def fitness_function(self, org):
+        if org.meals == 2:
+            chiral = copy.deepcopy(org)
+            chiral.pos = org.start_pos
+            if uniform(0, 100) <= ENV_SETTINGS['MUTATION_CHANCE']:
+                chiral.mutate()
+            self.generation.append(chiral)
+        elif org.meals == 0:
+            self.generation.remove(org)
+            del org
+        pass
+
+    def simulate(self):
+
+        simulating, step, epoch, idle = True, 0, 0, []
+        active_individuals = self.generation
+
+        while True:
+
+            if PLOT_SETTINGS['PLOT'] is True:
+                self.plot_step(step, epoch)
+
+            if not active_individuals:
+                print("EVOLVING ON STEP", step)
+                self.altruism()
+                self.evolve()
+                epoch += 1
+
+            for org in active_individuals:
+                # First check if org has energy, there's food and org can still eat. If any case = false, desactivate!
+                if org.energy <= 0 or not self.food or org.meals >= 2:
+                    active_individuals.remove(org)
+                    break
+
+                nearest_food = org.find_food(self.food)
+                if dist(org.pos, nearest_food.pos) < 1:
+                    org.meals += 1
+                    self.food.remove(nearest_food)
+                    del nearest_food
+                else:
+                    org.move_to(nearest_food.pos)
+
+            step += 1
+            if step >= ENV_SETTINGS['STEPS']:
+                break
+
+    def altruism(self):
+
+        fit_for_sharing = [org for org in self.generation if org.meals >= 2]
+        unfit = [org for org in self.generation if org.meals == 0]
+
+        for org in fit_for_sharing:
+            if uniform(0, 1) <= org.altruism:
+                recipient = choice(unfit)
+                while dist(recipient.pos, org.pos > 1.5):
+                    # Approax the organisms (so the sharing process is plotted!).
+                    org.move_to(recipient.pos, effortless=True)
+                unfit.remove(recipient)
+                org.share(recipient)
+
     def evolve(self):
-        """Applies fitness function to every organism on the population
-        and then resets the environment (a new day begins!) by getting
-        all organisms to their original starting positions and generating
-        new food."""
 
         for index in range(len(self.generation)):
             org = self.generation[index]
@@ -129,44 +275,10 @@ class Environment:
             org.pos = org.start_pos  # Restart position
             self.food = self.gen_food()  # Regenerate the food
 
-    def plot_step(self, step_num, gen_num):
-        """Function that plots a particular step of the evolutionary simulation."""
 
-        figure, axis = pyplot.subplots()
-        figure.set_size_inches(9.6, 5.4)
+env = AltruismEnvironment(ENV_SETTINGS['POP_SIZE'], 2, 1)
 
-        pyplot.xlim(PLOT_SETTINGS['X_MIN'], PLOT_SETTINGS['X_MAX'])
-        pyplot.ylim(PLOT_SETTINGS['Y_MIN'], PLOT_SETTINGS['Y_MAX'])
+for x in env.generation:
+    print(x)
 
-        for organism in self.generation:
-            org_circle = Circle(organism.pos, 0.05, edgecolor='g', facecolor='lightgreen', zorder=8)
-            edge = Circle(organism.pos, 0.05, facecolor='None', edgecolor='darkgreen', zorder=8)
-            axis.add_patch(org_circle)
-            axis.add_patch(edge)
-        for food in self.food:
-            food_circle = Circle(food.pos, 0.03, edgecolor='darkslateblue', facecolor='mediumslateblue', zorder=5)
-            axis.add_patch(food_circle)
-
-        axis.set_aspect('equal')
-        frame = pyplot.gca()
-        frame.axes.get_xaxis().set_ticks([])
-        frame.axes.get_yaxis().set_ticks([])
-
-        pyplot.figtext(0.025, 0.95, r'GENERATION: ' + str(gen_num))
-        pyplot.figtext(0.025, 0.90, r'T_STEP: ' + str(step_num))
-
-        pyplot.savefig('step {}.png'.format(step_num), dpi=100)
-
-    def __str__(self):
-
-        str = """
-        Population size: {}
-        Food amount: {}""".format(self.pop_size, len(self.food))
-
-        return str
-
-
-env = Environment(ENV_SETTINGS['POP_SIZE'], 2, 1)
-
-print(env)
 env.simulate()
