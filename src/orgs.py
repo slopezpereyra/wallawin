@@ -30,7 +30,7 @@ class Organism:
     meals : int
         Amount of food particles consumed by the organism in each evolutionary epoch."""
 
-    def __init__(self, velocity=uniform(1, 2)):
+    def __init__(self, velocity=uniform(0, 0.5)):
         self.energy = 10
         self.energy_release = 0.1
         self.velocity = velocity
@@ -108,6 +108,9 @@ class AltruisticOrganism (Organism):
         else:
             self.altruism *= uniform(1, ENV_SETTINGS['MUTABILITY'])
             self.velocity *= uniform(1, ENV_SETTINGS['MUTABILITY'])
+
+        self.altruism = 1 if self.altruism > 1 else self.altruism
+        self.altruism = 0 if self.altruism < 0 else self.altruism
 
     def __str__(self):
 

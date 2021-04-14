@@ -86,7 +86,8 @@ class Environment:
             altruistic_color = (org.altruism, 0, 0)
             org_circle = Circle(org.pos, 0.05, edgecolor=altruistic_color, facecolor=altruistic_color, zorder=8)
             edge = Circle(org.pos, 0.05, facecolor='None', edgecolor=altruistic_color, zorder=8)
-            pyplot.text(org.pos[0], org.pos[1] + 0.1, str(org.meals))
+            pyplot.text(org.pos[0], org.pos[1] + 0.1, "m=" + str(org.meals))
+            pyplot.text(org.pos[0], org.pos[1] - 0.1, "e=" + str(int(org.energy)))
             axis.add_patch(org_circle)
             axis.add_patch(edge)
         for food in self.food:
@@ -222,55 +223,64 @@ class AltruismEnvironment (Environment):
     def simulate(self):
 
         simulating, step, epoch, idle = True, 0, 0, []
-        active_individuals = self.generation
+        active_individuals = self.generation.copy()
 
         while True:
+            step += 1
+
+            print("There are ", len(active_individuals), " simulating")
 
             if PLOT_SETTINGS['PLOT'] is True:
                 self.plot_step(step, epoch)
 
             if not active_individuals:
-                print("EVOLVING ON STEP", step)
-                self.altruism()
+                print("Evolving on step ", step)
+                self.altruism(step, epoch)
                 self.evolve()
                 epoch += 1
+                # A graph of the previous epoch population data and new epoch population data would be useful here.
+                active_individuals = self.generation.copy()
+                continue
 
             for org in active_individuals:
-                # First check if org has energy, there's food and org can still eat. If any case = false, desactivate!
+                # Check if org has energy, there's food and org can still eat. In any false case, go to next organism.
                 if org.energy <= 0 or not self.food or org.meals >= 2:
                     active_individuals.remove(org)
-                    break
+                    continue
 
                 nearest_food = org.find_food(self.food)
-                if dist(org.pos, nearest_food.pos) < 1:
+                if dist(org.pos, nearest_food.pos) < 0.2:
                     org.meals += 1
                     self.food.remove(nearest_food)
                     del nearest_food
                 else:
                     org.move_to(nearest_food.pos)
 
-            step += 1
-            if step >= ENV_SETTINGS['STEPS']:
+            if step > ENV_SETTINGS['STEPS']:
                 break
 
-    def altruism(self):
+    def altruism(self, cur_step, cur_epoch):
 
         fit_for_sharing = [org for org in self.generation if org.meals >= 2]
-        unfit = [org for org in self.generation if org.meals == 0]
+        unfit = [org for org in self.generation]
 
         for org in fit_for_sharing:
+            if not unfit:
+                break
             if uniform(0, 1) <= org.altruism:
                 recipient = choice(unfit)
-                while dist(recipient.pos, org.pos > 1.5):
+                #while dist(recipient.pos, org.pos > 1.5):
                     # Approax the organisms (so the sharing process is plotted!).
-                    org.move_to(recipient.pos, effortless=True)
+                #    org.move_to(recipient.pos, effortless=True)
+                #    self.plot_step(cur_step, cur_epoch)
                 unfit.remove(recipient)
                 org.share(recipient)
 
+        print("Altruism simulation ended")
+
     def evolve(self):
 
-        for index in range(len(self.generation)):
-            org = self.generation[index]
+        for org in self.generation.copy():
             self.fitness_function(org)  # Create double if ate 2 or more, preserve if ate 1, kill if 0.
             org.pos = org.start_pos  # Restart position
             self.food = self.gen_food()  # Regenerate the food

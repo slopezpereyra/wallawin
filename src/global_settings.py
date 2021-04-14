@@ -4,7 +4,7 @@ ENV_SETTINGS = {'ENV_SIZE_X': 10,
                 'ENV_SIZE_Y': 10,
                 'POP_SIZE': 10,
                 'SIMULATION_TIME': 20,
-                'STEPS': 30,
+                'STEPS': 200,
                 'MUTABILITY': 1.4,
                 'MUTATION_CHANCE': 10}
 
