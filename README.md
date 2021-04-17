@@ -31,7 +31,8 @@ The selfish population grows until the 20th generation, when it begins to fall.
 The speed of the individuals plays no part, probably as a consequence of the extreme abundance of food.
 
 
-![Alt Text](https://i.ibb.co/pWwXMgm/data.png)
-![Evolutionary Data](file:///C:/Users/Santi/Documents/Computer%20Science/Simulation%20Data/High%20Abundance/1/data.png)
+
+![Alt Text](https://tenor.com/bA8wk.gif)
+![Evolutionary Data](https://i.ibb.co/pWwXMgm/data.png)
 
 
