@@ -32,7 +32,7 @@ The speed of the individuals plays no part, probably as a consequence of the ext
 
 
 
-![Alt Text](https://tenor.com/view/gif-21204878)
+![Alt Text](https://media.giphy.com/media/5AW6l3xZx2gw71l4Rw/giphy.gif)
 
 
 ![Evolutionary Data](https://i.ibb.co/pWwXMgm/data.png)
