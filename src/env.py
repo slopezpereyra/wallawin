@@ -2,12 +2,12 @@
 It's where the magic happens."""
 
 import copy
-from random import uniform, choice
+from random import uniform, choice, randint
 from math import floor, dist
-from matplotlib import pyplot
-from matplotlib.patches import Circle
-from orgs import Organism, AltruisticOrganism
+from orgs import Organism, AltruisticGen
 from global_settings import ENV_SETTINGS, PLOT_SETTINGS
+from plotter import plot_epoch_data, plot_step
+import numpy as np
 
 
 class Food:
@@ -72,37 +72,6 @@ class Environment:
         """
 
         pass
-
-    def plot_step(self, step_num, gen_num):
-        """Function that plots a particular step of the evolutionary simulation."""
-
-        figure, axis = pyplot.subplots()
-        figure.set_size_inches(9.6, 5.4)
-
-        pyplot.xlim(PLOT_SETTINGS['X_MIN'], PLOT_SETTINGS['X_MAX'])
-        pyplot.ylim(PLOT_SETTINGS['Y_MIN'], PLOT_SETTINGS['Y_MAX'])
-
-        for org in self.generation:
-            altruistic_color = (org.altruism, 0, 0)
-            org_circle = Circle(org.pos, 0.05, edgecolor=altruistic_color, facecolor=altruistic_color, zorder=8)
-            edge = Circle(org.pos, 0.05, facecolor='None', edgecolor=altruistic_color, zorder=8)
-            pyplot.text(org.pos[0], org.pos[1] + 0.1, "m=" + str(org.meals))
-            pyplot.text(org.pos[0], org.pos[1] - 0.1, "e=" + str(int(org.energy)))
-            axis.add_patch(org_circle)
-            axis.add_patch(edge)
-        for food in self.food:
-            food_circle = Circle(food.pos, 0.03, edgecolor='darkslateblue', facecolor='mediumslateblue', zorder=5)
-            axis.add_patch(food_circle)
-
-        axis.set_aspect('equal')
-        frame = pyplot.gca()
-        frame.axes.get_xaxis().set_ticks([])
-        frame.axes.get_yaxis().set_ticks([])
-
-        pyplot.figtext(0.025, 0.95, r'GENERATION: ' + str(gen_num))
-        pyplot.figtext(0.025, 0.90, r'T_STEP: ' + str(step_num))
-
-        pyplot.savefig('step {}.png'.format(step_num), dpi=100)
 
     def __str__(self):
 
@@ -186,7 +155,7 @@ class DepletionEnvironment (Environment):
         if org.meals >= 2:
             chiral = copy.deepcopy(org)
             chiral.pos = org.start_pos
-            if uniform(0, 100) <= ENV_SETTINGS['MUTATION_CHANCE']:
+            if randint(0, 100) <= ENV_SETTINGS['MUTATION_CHANCE']:
                 chiral.mutate()
             self.generation.append(chiral)
         elif org.meals == 0:
@@ -202,93 +171,120 @@ class AltruismEnvironment (Environment):
 
     def __init__(self, pop_size, abundance, risk=0):
         super().__init__(pop_size, abundance, risk)
+        self.rep_factor = 40  # An organisms chance of reproducting will be its meals * rep_factor.
+        self.alt_pop = [x for x in self.generation if x.altruistic]
+        self.self_pop = [x for x in self.generation if not x.altruistic]
 
     @staticmethod
     def gen_population(size):
-        population = [AltruisticOrganism() for x in range(0, size)]
-        return population
+        half = int(size / 2)
+        alt_pop = [AltruisticGen(altruistic=True) for x in range(0, half)]
+        self_pop = [AltruisticGen(altruistic=False) for x in range(0, half)]
+        return alt_pop + self_pop
 
     def fitness_function(self, org):
-        if org.meals == 2:
-            chiral = copy.deepcopy(org)
-            chiral.pos = org.start_pos
-            if uniform(0, 100) <= ENV_SETTINGS['MUTATION_CHANCE']:
-                chiral.mutate()
-            self.generation.append(chiral)
-        elif org.meals == 0:
+        """Evaluate fitness of organism org in relation to the amount of meals it ate. Act according to evaluation such
+        that no meals produces death, one meal survival and normal chance of reproduction, two meals survival and
+        high chance of reproduction."""
+
+        if org.meals == 0:
             self.generation.remove(org)
             del org
-        pass
+            return
+
+        rep_chance = org.meals * self.rep_factor
+
+        if randint(0, 100) <= rep_chance:
+            chiral = copy.deepcopy(org)
+            chiral.pos = np.array([uniform(0, ENV_SETTINGS['ENV_SIZE_X']), uniform(0, ENV_SETTINGS['ENV_SIZE_Y'])])
+            if randint(0, 100) <= ENV_SETTINGS['MUTATION_CHANCE']:
+                chiral.mutate()
+                self.generation.append(chiral)
+
+        org.pos = org.start_pos
+        org.meals = 0
+
+    def sim_food_competition(self, organisms):
+        """Simulate competition for food in the environment
+        given a set of organisms."""
+
+        for org in organisms:
+            # Check if org has energy, there's food and org can still eat. In any false case, go to next organism.
+            if org.energy <= 0 or not self.food or org.meals >= 2:
+                organisms.remove(org)
+                continue
+
+            nearest_food = org.find_food(self.food)
+            if dist(org.pos, nearest_food.pos) < ENV_SETTINGS['FEADING_RANGE']:
+                org.meals += 1
+                self.food.remove(nearest_food)
+                del nearest_food
+            else:
+                org.move_to(nearest_food.pos, effortless=True)
+
+    def altruism(self):
+        """Simulates altruistic behavior, based on kin-selection, by making altruistic behaviors with
+        two meals share one of them with altruistic behaviors with zero meals."""
+
+        fit_for_sharing = [org for org in self.generation if org.meals >= 2 and org.altruistic]
+        fit_for_receiving = [org for org in self.generation if org.altruistic and org.meals == 0]
+
+        for org in fit_for_sharing:
+            if not fit_for_receiving:
+                break
+            recipient = choice(fit_for_receiving)
+            fit_for_receiving.remove(recipient)
+            org.share(recipient)
+
+    def evolve(self):
+        """Simulate altruistic behavior and evaluate each organism's fitness.
+        Then reset organism's meals attribute and regenerate food in the environment."""
+
+        self.altruism()
+        # A graph of the previous epoch population data and new epoch population data would be useful here.
+        for org in self.generation:
+            self.fitness_function(org)
+
+        self.food = self.gen_food()
+
+    def set_epoch_data(self, epoch, epoch_data):
+        """Gather generational data for generation of epoch and
+        set it into the epoc_data dictionary (used for plotting)."""
+
+        speed_values = [x.velocity for x in self.generation]
+
+        pop_size = len(self.generation)
+        avg_speed = sum(speed_values) / pop_size if pop_size != 0 else sum(speed_values) / 1
+        abs_altruistic_population = len([x for x in self.generation if x.altruistic])
+        abs_selfish_population = len([x for x in self.generation if not x.altruistic])
+        epoch_data[epoch] = [pop_size, avg_speed, abs_altruistic_population, abs_selfish_population]
 
     def simulate(self):
 
         simulating, step, epoch, idle = True, 0, 0, []
         active_individuals = self.generation.copy()
+        epoch_data = {}
 
         while True:
+            print(len(self.generation))
             step += 1
+            if step > ENV_SETTINGS['STEPS'] or len(self.generation) == 0:
+                plot_epoch_data(epoch_data)
+                break
 
-            print("There are ", len(active_individuals), " simulating")
-
-            if PLOT_SETTINGS['PLOT'] is True:
-                self.plot_step(step, epoch)
+            if PLOT_SETTINGS['PLOT'] is True and step % 5 == 0:
+                plot_step(self.generation, self.food, step, epoch)
 
             if not active_individuals:
                 print("Evolving on step ", step)
-                self.altruism(step, epoch)
                 self.evolve()
                 epoch += 1
-                # A graph of the previous epoch population data and new epoch population data would be useful here.
                 active_individuals = self.generation.copy()
+                self.set_epoch_data(epoch, epoch_data)
                 continue
 
-            for org in active_individuals:
-                # Check if org has energy, there's food and org can still eat. In any false case, go to next organism.
-                if org.energy <= 0 or not self.food or org.meals >= 2:
-                    active_individuals.remove(org)
-                    continue
-
-                nearest_food = org.find_food(self.food)
-                if dist(org.pos, nearest_food.pos) < 0.2:
-                    org.meals += 1
-                    self.food.remove(nearest_food)
-                    del nearest_food
-                else:
-                    org.move_to(nearest_food.pos)
-
-            if step > ENV_SETTINGS['STEPS']:
-                break
-
-    def altruism(self, cur_step, cur_epoch):
-
-        fit_for_sharing = [org for org in self.generation if org.meals >= 2]
-        unfit = [org for org in self.generation]
-
-        for org in fit_for_sharing:
-            if not unfit:
-                break
-            if uniform(0, 1) <= org.altruism:
-                recipient = choice(unfit)
-                #while dist(recipient.pos, org.pos > 1.5):
-                    # Approax the organisms (so the sharing process is plotted!).
-                #    org.move_to(recipient.pos, effortless=True)
-                #    self.plot_step(cur_step, cur_epoch)
-                unfit.remove(recipient)
-                org.share(recipient)
-
-        print("Altruism simulation ended")
-
-    def evolve(self):
-
-        for org in self.generation.copy():
-            self.fitness_function(org)  # Create double if ate 2 or more, preserve if ate 1, kill if 0.
-            org.pos = org.start_pos  # Restart position
-            self.food = self.gen_food()  # Regenerate the food
+            self.sim_food_competition(active_individuals)
 
 
-env = AltruismEnvironment(ENV_SETTINGS['POP_SIZE'], 2, 1)
-
-for x in env.generation:
-    print(x)
-
+env = AltruismEnvironment(ENV_SETTINGS['POP_SIZE'], 0.5, 1)
 env.simulate()

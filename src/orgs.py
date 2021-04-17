@@ -30,7 +30,7 @@ class Organism:
     meals : int
         Amount of food particles consumed by the organism in each evolutionary epoch."""
 
-    def __init__(self, velocity=uniform(0, 0.5)):
+    def __init__(self, velocity=uniform(3, 8)):
         self.energy = 10
         self.energy_release = 0.1
         self.velocity = velocity
@@ -48,7 +48,7 @@ class Organism:
             ratio = self.velocity / distance
             direction = ratio * delta
             self.pos = self.pos + direction
-            if effortless is False:
+            if not effortless:
                 self.energy -= self.velocity * self.energy_release  # More velocity, more energy release.
 
     def find_food(self, food):
@@ -80,11 +80,11 @@ class Organism:
         return str
 
 
-class AltruisticOrganism (Organism):
+class AltruisticGen (Organism):
 
-    def __init__(self, velocity=uniform(1, 2)):
+    def __init__(self, velocity=uniform(1, 2), altruistic=None):
         super().__init__()
-        self.altruism = uniform(0, 1)
+        self.altruistic = bool(getrandbits(1)) if altruistic is None else altruistic
         self.shared = False
         self.received_from = []  # For future implementation of reciprocity mechanisms, for the moment useless.
         self.shared_to = []
@@ -100,24 +100,15 @@ class AltruisticOrganism (Organism):
 
     def mutate(self):
 
-        a = range(0, 2)
-        if a == 0:
-            self.altruism *= uniform(1, ENV_SETTINGS['MUTABILITY'])
-        elif a == 1:
-            self.velocity *= uniform(1, ENV_SETTINGS['MUTABILITY'])
-        else:
-            self.altruism *= uniform(1, ENV_SETTINGS['MUTABILITY'])
-            self.velocity *= uniform(1, ENV_SETTINGS['MUTABILITY'])
+        self.velocity *= uniform(1, ENV_SETTINGS['MUTABILITY'])
 
-        self.altruism = 1 if self.altruism > 1 else self.altruism
-        self.altruism = 0 if self.altruism < 0 else self.altruism
 
     def __str__(self):
 
         str = """
-        Organism altruism: {}
+        Organism is altruistic: {}
         Organism velocity: {}
         Organism position: {}
-        Organism meals: {}""".format(self.altruism, self.velocity, self.pos, self.meals)
+        Organism meals: {}""".format(self.altruistic, self.velocity, self.pos, self.meals)
 
         return str
