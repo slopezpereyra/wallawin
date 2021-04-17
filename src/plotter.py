@@ -1,6 +1,6 @@
 from matplotlib import pyplot
 from matplotlib.patches import Circle
-from global_settings import PLOT_SETTINGS
+from settings import PLOT_SETTINGS
 import numpy as np
 
 
@@ -36,7 +36,7 @@ def plot_step(generation, food, step_num, gen_num):
     pyplot.savefig('step {}.png'.format(step_num), dpi=100)
 
 
-def plot_epoch_data(data):
+def plot_epoch_data(data, run):
 
     figure2, axis = pyplot.subplots()
 
@@ -56,4 +56,4 @@ def plot_epoch_data(data):
     pyplot.xlabel("Generations")
     pyplot.ylabel("Data")
     pyplot.legend()
-    pyplot.savefig("data")
+    pyplot.savefig("data_{}".format(run))

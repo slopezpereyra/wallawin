@@ -3,7 +3,7 @@
 from random import uniform, getrandbits
 from math import dist
 import numpy as np
-from global_settings import ENV_SETTINGS
+from settings import ENV_SETTINGS
 
 
 class Organism:
@@ -37,6 +37,7 @@ class Organism:
         self.pos = np.array([uniform(0, ENV_SETTINGS['ENV_SIZE_X']), uniform(0, ENV_SETTINGS['ENV_SIZE_Y'])])
         self.start_pos = self.pos
         self.meals = 0
+        self.age = 0
 
     def move_to(self, target_pos, effortless=False):
         """Move the organism towards the target_pos and consume
@@ -67,8 +68,8 @@ class Organism:
         """Mutate the altruism, velocity or both depending on a random choice."""
 
         a = range(0, 1)
-        if a == 1:
-            self.velocity *= uniform(1, ENV_SETTINGS['MUTABILITY'])
+        #if a == 1:
+            #self.velocity *= uniform(1, ENV_SETTINGS['MUTABILITY'])
 
     def __str__(self):
 
@@ -100,8 +101,8 @@ class AltruisticGen (Organism):
 
     def mutate(self):
 
-        self.velocity *= uniform(1, ENV_SETTINGS['MUTABILITY'])
-
+        #self.velocity *= uniform(1, ENV_SETTINGS['MUTABILITY'])
+        pass
 
     def __str__(self):
 
