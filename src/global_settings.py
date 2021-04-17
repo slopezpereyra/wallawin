@@ -6,6 +6,11 @@ ENV_SETTINGS = {'ENV_SIZE_X': 100,
                 'STEPS': 1000,
                 'MUTABILITY': 1.2,
                 'MUTATION_CHANCE': 10,
-                'FEADING_RANGE': 3}
+                'FEADING_RANGE': 3,
+                'LONGEVITY': 3}
 
-PLOT_SETTINGS = {'PLOT': True, 'X_MIN': 0.0, 'X_MAX': 100.0, 'Y_MIN': 0.0, 'Y_MAX': 100.0}
+PLOT_SETTINGS = {'PLOT': True,
+                 'X_MIN': 0.0,
+                 'X_MAX': 100.0,
+                 'Y_MIN': 0.0,
+                 'Y_MAX': 100.0}

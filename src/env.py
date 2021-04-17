@@ -34,7 +34,7 @@ class Environment:
         the chance of environmental death for the organism. Default is 0.
         """
 
-    def __init__(self, pop_size, abundance, risk=0):
+    def __init__(self, pop_size, abundance, risk=0, rep_factor=40):
         """Self.abundance is a factor multiplied to the size of the population
         to determine the amount of food. If abundance is 1, then food amount will
         be equal to pop size. Over one is excess, below scarcety."""
@@ -168,10 +168,15 @@ class DepletionEnvironment (Environment):
 
 
 class AltruismEnvironment (Environment):
+    """An Environment in which organisms are potentially altruistic. By default
+    half of the population will be altruistic, the other half of it selfish.
+    Altruistic organisms will, if the can survive doing so, share a meal with
+    other altruistic organisms that failed at getting any on their own.
+    Thus they sacrifice reproductive potential in exchange of ensuring
+    the survival of another altruistic organisms."""
 
     def __init__(self, pop_size, abundance, risk=0):
         super().__init__(pop_size, abundance, risk)
-        self.rep_factor = 40  # An organisms chance of reproducting will be its meals * rep_factor.
         self.alt_pop = [x for x in self.generation if x.altruistic]
         self.self_pop = [x for x in self.generation if not x.altruistic]
 
@@ -182,14 +187,18 @@ class AltruismEnvironment (Environment):
         self_pop = [AltruisticGen(altruistic=False) for x in range(0, half)]
         return alt_pop + self_pop
 
+    def kill(self, org):
+        """Removes object org from generation and deletes it."""
+        self.generation.remove(org)
+        del org
+
     def fitness_function(self, org):
         """Evaluate fitness of organism org in relation to the amount of meals it ate. Act according to evaluation such
         that no meals produces death, one meal survival and normal chance of reproduction, two meals survival and
         high chance of reproduction."""
 
         if org.meals == 0:
-            self.generation.remove(org)
-            del org
+            self.kill(org)
             return
 
         rep_chance = org.meals * self.rep_factor
@@ -201,12 +210,15 @@ class AltruismEnvironment (Environment):
                 chiral.mutate()
                 self.generation.append(chiral)
 
+        if org.age >= ENV_SETTINGS['LONGEVITY']:
+            self.kill(org)
+
         org.pos = org.start_pos
         org.meals = 0
 
     def sim_food_competition(self, organisms):
         """Simulate competition for food in the environment
-        given a set of organisms."""
+        given a list of Organism objects."""
 
         for org in organisms:
             # Check if org has energy, there's food and org can still eat. In any false case, go to next organism.
@@ -226,8 +238,8 @@ class AltruismEnvironment (Environment):
         """Simulates altruistic behavior, based on kin-selection, by making altruistic behaviors with
         two meals share one of them with altruistic behaviors with zero meals."""
 
-        fit_for_sharing = [org for org in self.generation if org.meals >= 2 and org.altruistic]
-        fit_for_receiving = [org for org in self.generation if org.altruistic and org.meals == 0]
+        fit_for_sharing = [org for org in self.alt_pop if org.meals >= 2]
+        fit_for_receiving = [org for org in self.alt_pop if org.meals == 0]
 
         for org in fit_for_sharing:
             if not fit_for_receiving:
@@ -243,6 +255,7 @@ class AltruismEnvironment (Environment):
         self.altruism()
         # A graph of the previous epoch population data and new epoch population data would be useful here.
         for org in self.generation:
+            org.age += 1
             self.fitness_function(org)
 
         self.food = self.gen_food()
@@ -260,6 +273,7 @@ class AltruismEnvironment (Environment):
         epoch_data[epoch] = [pop_size, avg_speed, abs_altruistic_population, abs_selfish_population]
 
     def simulate(self):
+        """Simulate the evolution process."""
 
         simulating, step, epoch, idle = True, 0, 0, []
         active_individuals = self.generation.copy()

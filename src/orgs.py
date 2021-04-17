@@ -37,6 +37,7 @@ class Organism:
         self.pos = np.array([uniform(0, ENV_SETTINGS['ENV_SIZE_X']), uniform(0, ENV_SETTINGS['ENV_SIZE_Y'])])
         self.start_pos = self.pos
         self.meals = 0
+        self.age = 0
 
     def move_to(self, target_pos, effortless=False):
         """Move the organism towards the target_pos and consume
