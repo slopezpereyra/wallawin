@@ -21,7 +21,7 @@ class Environment:
     """Defines an Environment object.
 
     The environment will be the abstract space in which
-    the evolution process will occur. As such it takes a
+    the evolution process will occur. As such it takes
 
     Attributes
     ----------
@@ -286,5 +286,5 @@ class AltruismEnvironment (Environment):
             self.sim_food_competition(active_individuals)
 
 
-env = AltruismEnvironment(ENV_SETTINGS['POP_SIZE'], 0.5, 1)
+env = AltruismEnvironment(ENV_SETTINGS['POP_SIZE'], 5, 1)
 env.simulate()

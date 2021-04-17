@@ -3,7 +3,7 @@
 ENV_SETTINGS = {'ENV_SIZE_X': 100,
                 'ENV_SIZE_Y': 100,
                 'POP_SIZE': 20,
-                'STEPS': 100,
+                'STEPS': 1000,
                 'MUTABILITY': 1.2,
                 'MUTATION_CHANCE': 10,
                 'FEADING_RANGE': 3}
