@@ -1,3 +1,4 @@
+
 """Stores global settings for the simulation."""
 
 ENV_SETTINGS = {'ENV_SIZE_X': 100,

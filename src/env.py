@@ -6,7 +6,7 @@ from random import uniform, choice, randint
 from math import floor, dist
 from orgs import Organism, AltruisticGen
 from settings import ENV_SETTINGS, PLOT_SETTINGS
-from plotter import plot_epoch_data, plot_step
+from plotter import alt_plot_epoch_data, plot_step
 import numpy as np
 
 
@@ -19,10 +19,8 @@ class Food:
 
 class Environment:
     """Defines an Environment object.
-
     The environment will be the abstract space in which
     the evolution process will occur. As such it takes
-
     Attributes
     ----------
     generation : Generation
@@ -65,7 +63,6 @@ class Environment:
         which has a chance of mutating.
         If organism didn't succed at getting any particle, it dies.
         Otherwise it just survives.
-
         Parameters
         ---------
         org : Organism
@@ -105,15 +102,12 @@ class DepletionEnvironment (Environment):
     def simulate(self):
         """Simulate the evolution process where reproduction occurs
         after organisms compete for food and all food is depleted.
-
         Simulation lasts for as many steps as defined in ENVIRONMENTAL_SETTINGS.
-
         On each simulation:
             a) if PLOT_SETTINGS['PLOT'] is true, plots the environment on the particular step of the simulation.
             b) Loop through the organisms making them compete for the available food.
             c) If all food has been consumed, apply natural selection.
             d) Reset position of the organisms, create more food and start again.
-
         """
 
         simulating, step, gen = True, 0, 0
@@ -146,7 +140,6 @@ class DepletionEnvironment (Environment):
         which has a chance of mutating.
         If organism didn't succed at getting any particle, it dies.
         Otherwise it just survives.
-
         Parameters
         ---------
         org : Organism
@@ -218,7 +211,7 @@ class AltruismEnvironment (Environment):
         org.pos = org.start_pos
         org.meals = 0
 
-    def sim_food_competition(self, organisms):
+    def sim_moving_food_competition(self, organisms):
         """Simulate competition for food in the environment
         given a list of Organism objects."""
 
@@ -235,6 +228,16 @@ class AltruismEnvironment (Environment):
                 del nearest_food
             else:
                 org.move_to(nearest_food.pos, effortless=True)
+
+    def sim_static_food_competition(self, organisms):
+
+        for org in organisms:
+            # Check if org has energy, there's food and org can still eat. In any false case, go to next organism.
+            if org.energy <= 0 or not self.food or org.meals >= 2:
+                organisms.remove(org)
+                continue
+
+            nearest_food = org.find_food(self.food)
 
     def altruism(self):
         """Simulates altruistic behavior, based on kin-selection, by making altruistic behaviors with
@@ -274,7 +277,7 @@ class AltruismEnvironment (Environment):
         abs_selfish_population = len([x for x in self.generation if not x.altruistic])
         epoch_data[epoch] = [pop_size, avg_speed, abs_altruistic_population, abs_selfish_population]
 
-    def simulate(self, runs=1):
+    def simulate(self, runs=1, move_simulation=False):
         """Simulate the evolution process, plot and save the data for as many runs
         as specified."""
 
@@ -287,7 +290,7 @@ class AltruismEnvironment (Environment):
             while True:
                 step += 1
                 if step > ENV_SETTINGS['STEPS'] or len(self.generation) == 0:
-                    plot_epoch_data(epoch_data, run)
+                    alt_plot_epoch_data(epoch_data, run)
                     self.generation = self.gen_population(ENV_SETTINGS['POP_SIZE'])
                     break
 
@@ -301,8 +304,9 @@ class AltruismEnvironment (Environment):
                     self.set_epoch_data(epoch, epoch_data)
                     continue
 
-                self.sim_food_competition(active_individuals)
+                if move_simulation:
+                    self.sim_moving_food_competition(active_individuals)
 
 
-env = AltruismEnvironment(ENV_SETTINGS['POP_SIZE'], 5, 1, rep_factor=50)
+env = AltruismEnvironment(ENV_SETTINGS['POP_SIZE'], 1, 1, rep_factor=50)
 env.simulate(5)

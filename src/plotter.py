@@ -1,5 +1,5 @@
 from matplotlib import pyplot
-from matplotlib.patches import Circle
+from matplotlib.patches import Circle, Patch
 from settings import PLOT_SETTINGS
 import numpy as np
 
@@ -36,7 +36,7 @@ def plot_step(generation, food, step_num, gen_num):
     pyplot.savefig('step {}.png'.format(step_num), dpi=100)
 
 
-def plot_epoch_data(data, run):
+def alt_plot_epoch_data(data, run):
 
     figure2, axis = pyplot.subplots()
 
@@ -44,16 +44,13 @@ def plot_epoch_data(data, run):
 
     # Iterate through each step on the data dictionary getting the relevant data.
     y_pop_size = np.array([data[x][0] for x in range(1, len(x_axis) + 1)])
-    y_avge_speed = np.array([data[x][1] for x in range(1, len(x_axis) + 1)])
-    abs_altruistic_pop = np.array([data[x][2] for x in range(1, len(x_axis) + 1)])
     abs_selfish_pop = np.array([data[x][3] for x in range(1, len(x_axis) + 1)])
 
-    pyplot.plot(x_axis, y_pop_size, label="Pop Size")
-    pyplot.plot(x_axis, y_avge_speed, label="Avg Speed")
-    pyplot.plot(x_axis, abs_altruistic_pop, label="Altruistic Population")
-    pyplot.plot(x_axis, abs_selfish_pop, label="Selfish Population")
-
+    red_patch = Patch(color='red', label='Selfish population')
+    blue_patch = Patch(color='blue', label='Altruistic population')
+    pyplot.legend(handles=[red_patch, blue_patch])
     pyplot.xlabel("Generations")
     pyplot.ylabel("Data")
-    pyplot.legend()
+    pyplot.fill_between(x_axis, y_pop_size)
+    pyplot.fill_between(x_axis, abs_selfish_pop, facecolor="red")
     pyplot.savefig("data_{}".format(run))
