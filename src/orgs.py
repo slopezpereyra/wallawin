@@ -3,7 +3,7 @@
 from random import uniform, getrandbits
 from math import dist
 import numpy as np
-from settings import ENV_SETTINGS
+from settings import SIM_SETTINGS
 
 
 class Organism:
@@ -34,7 +34,7 @@ class Organism:
         self.energy = 10
         self.energy_release = 0.1
         self.velocity = velocity
-        self.pos = np.array([uniform(0, ENV_SETTINGS['ENV_SIZE_X']), uniform(0, ENV_SETTINGS['ENV_SIZE_Y'])])
+        self.pos = np.array([uniform(0, SIM_SETTINGS['ENV_SIZE_X']), uniform(0, SIM_SETTINGS['ENV_SIZE_Y'])])
         self.start_pos = self.pos
         self.meals = 0
         self.age = 0
@@ -90,6 +90,7 @@ class AltruisticGen (Organism):
         self.received_from = []  # For future implementation of reciprocity mechanisms, for the moment useless.
         self.shared_to = []
         self.received_from = []
+        self.food = None
 
     def share(self, recipient):
 
