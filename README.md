@@ -41,5 +41,5 @@ Here we see a *Sharing Simulation* with selfish (red) and altruistic (green) ind
 
 The next is a *Share or take simulation* starting with 9 altruistic and 1 selfish individuals. We see the total population grow with a somewhat constant proportion of altruistic/selfish organisms until around generation 30, where selfish organisms succeed greatly and drive altruistic ones to extintion. This results in a tremendous drop of the total population and eventual extinction of the species around the 90th generation. A case of success of an evolutionary trait at the cost of the good of the species.
 
-![Evolutionary Data](https://ibb.co/NKr3rpr)
+![Evolutionary Data](https://i.ibb.co/qpCnC9C/data-0.png)
 
