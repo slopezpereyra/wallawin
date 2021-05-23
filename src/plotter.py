@@ -41,10 +41,11 @@ def alt_plot_epoch_data(data, run):
     figure2, axis = pyplot.subplots()
 
     x_axis = np.array(list(data.keys()))
-
+    print(data)
+    print(data[0][0])
     # Iterate through each step on the data dictionary getting the relevant data.
-    y_pop_size = np.array([data[x][0] for x in range(1, len(x_axis) + 1)])
-    abs_selfish_pop = np.array([data[x][3] for x in range(1, len(x_axis) + 1)])
+    y_pop_size = np.array([data[x][0] for x in range(0, len(x_axis))])
+    abs_selfish_pop = np.array([data[x][3] for x in range(0, len(x_axis))])
 
     red_patch = Patch(color='red', label='Selfish population')
     blue_patch = Patch(color='blue', label='Altruistic population')
