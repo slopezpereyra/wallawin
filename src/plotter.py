@@ -1,8 +1,8 @@
 from matplotlib import pyplot
 from matplotlib.patches import Circle, Patch
-from settings import PLOT_SETTINGS
+from wallawin.src.settings import PLOT_SETTINGS
 import numpy as np
-
+import os
 
 def plot_step(generation, food, step_num, gen_num):
     """Function that plots a particular step of the evolutionary simulation."""
@@ -51,7 +51,7 @@ def alt_plot_epoch_data(data, run):
     blue_patch = Patch(color='blue', label='Altruistic population')
     pyplot.legend(handles=[red_patch, blue_patch])
     pyplot.xlabel("Generations")
-    pyplot.ylabel("Data")
+    pyplot.ylabel("Population")
     pyplot.fill_between(x_axis, y_pop_size)
     pyplot.fill_between(x_axis, abs_selfish_pop, facecolor="red")
     pyplot.savefig("data_{}".format(run))

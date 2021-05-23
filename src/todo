@@ -1,0 +1,7 @@
+
+
+1: Longevity should be an evolutionary trait, not a setting.
+2: Combination of ShareWithStarving and ShareOrTake?
+3: Reciprocity in SharingSimulator.
+4: Define specific settings for different simulators. eg.: for ShareOrTake, always false starvation and false static
+food gen.

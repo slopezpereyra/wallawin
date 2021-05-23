@@ -14,10 +14,10 @@ PLOT_SETTINGS = {'PLOT': False,
 ENV_SETTINGS = {'POP_SIZE'}
 
 
-class Settings :
+class Settings:
 
     def __init__(self, pop_size, abundance, mutation_chance=10, mutability=1.2, feading_range=10, longevity=400000,
-                 risk=0, rep_factor=40):
+                 risk=0, rep_factor=40, starvation=True, static_food_generation=True):
         self.pop_size = pop_size
         self.abundance = abundance
         self.mutation_chance = mutation_chance
@@ -26,5 +26,7 @@ class Settings :
         self.longevity = longevity
         self.risk = risk
         self.rep_factor = rep_factor
+        self.starvation = starvation
+        self.static_food_generation = static_food_generation
 
 
