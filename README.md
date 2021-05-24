@@ -14,7 +14,7 @@ Simulations on different type of simulators correspond to simulations under diff
 
 Altruism simulations are those in which organisms are altruistic or selfish, depending on the allele of a gen. There are currently two types of altruism simulations.
 
-### Sharing simulation
+### Share with starving simulation
 
 Altruistic individuals will share their food with other altruistic individuals that failed at finding food on their own, so long as they do not compromise their own survival in doing so. The altruistic organism thus trades a high chance of reproduction by a slight one plus the survival of another altruistic individual, which not only has a slight chance of reproduction itself but may now show reciprocity in the future. 
 
@@ -38,3 +38,13 @@ The next is a *Share or take simulation* starting with 9 altruistic and 1 selfis
 
 ![Evolutionary Data](https://i.ibb.co/qpCnC9C/data-0.png)
 
+
+## State of development
+
+Though Wallawin can already manage to efficiently run evolutionary simulations, there are many steps ahead in its development. 
+
+- Develop reciprocity in the altruism simulations. Organisms that cooperate in one instance should remember this and prioritize cooperation with each other in future steps of the simulation.
+- Longevity of individuals is currently a setting, while it should be an evolutionary trait in at least certain simulations.
+- A complex simulator that combines both *Share or take* and *Share with starving* simulations will be developed. This simulator will include both behavioral processes: the possibility of altruistic organisms to share their food with other starving altruistic organisms, and the chance of a single meal to be found by different kind of organisms, with the eventual resolution of the conflict based on the allele of their altruistic gen.
+- Concrete, ready-to-go Setting objects must be defined to establish the predetermined configuration of different kind of simulators.
+- Other behavioral traits must be simulated both on their own simulators as well as mixed in the already existing ones. Some of them are agressivness, kin selection, infanticide or, in a complex level, different degrees of promiscuity. The list is not limited to these.
