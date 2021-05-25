@@ -20,18 +20,18 @@ class BaseSimulator:
 
     Attributes
     ----------
-    settings: Settings
+    sim_settings: Settings
         a Settings object that defines the population size, abundance of food,
         base mutation chance, base mutability, feading range of the organisms
         (for simulations involving movement) and longevity.
         """
 
-    def __init__(self, settings):
+    def __init__(self, sim_settings):
         """Simulator object. Simulates the whole evolutionary process. Takes
         a Settings object as argument."""
 
-        self.settings = settings
-        self.generation = self.gen_population(settings.pop_size)
+        self.settings = sim_settings
+        self.generation = self.gen_population(sim_settings.pop_size)
         self.food = self.gen_food()
 
     def gen_food(self):
@@ -47,8 +47,7 @@ class BaseSimulator:
 
         return food
 
-    @staticmethod
-    def gen_population(size):
+    def gen_population(self, size):
         """Base method for population generation."""
         pass
 

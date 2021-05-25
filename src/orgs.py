@@ -11,18 +11,7 @@ class BaseOrganism:
     eating, reproducing and dying.
 
     Attributes
-    ----------
-    energy : float
-        Amount of energy available to spend in search for food each step. Only
-        relevant in simulations involving movement.
-    energy_release : float
-        A factor determining how quickly the energy is released.
-        Energy release is always proportionally equivalent to velocity.
-        Only relevant in simulations involving movement.
-    velocity : float
-        Distance covered by the individual in a single evolutionary step.
-        Default value is random between 1 and 2.
-        Only relevant in simulations involving movement.
+   -----------
     pos : array
         An array serving as a two-dimensional vector. Represents x y coordinates
         of the organism's position. Random value asigned on initialization.
@@ -31,10 +20,8 @@ class BaseOrganism:
     meals : int
         Amount of food particles consumed by the organism in each evolutionary step."""
 
-    def __init__(self, velocity=uniform(3, 8)):
-        self.energy = 10
-        self.energy_release = 0.1
-        self.velocity = velocity
+    def __init__(self, traits):
+        self.traits = traits
         self.pos = np.array([uniform(0, SIM_SETTINGS['ENV_SIZE_X']), uniform(0, SIM_SETTINGS['ENV_SIZE_Y'])])
         self.start_pos = self.pos
         self.meals = 0
@@ -52,14 +39,15 @@ class BaseOrganism:
             Set to False by default. If true the organism will not waste energy moving. Useful
             for certain simulations."""
 
-        if self.energy > 0:
+        if self.traits.energy > 0:
             delta = target_pos - self.pos
             distance = dist(target_pos, self.pos)
-            ratio = self.velocity / distance
+            ratio = self.traits.velocity / distance
             direction = ratio * delta
             self.pos = self.pos + direction
             if not effortless:
-                self.energy -= self.velocity * self.energy_release  # More velocity, more energy release.
+                # More velocity, more energy release.
+                self.traits.energy -= self.traits.velocity * self.traits.energy_release
 
     def find_food(self, food):
         """Return the nearest food in the simulation.
@@ -83,14 +71,14 @@ class BaseOrganism:
 
         a = range(0, 1)
         #if a == 1:
-            #self.velocity *= uniform(1, ENV_SETTINGS['MUTABILITY'])
+            #self.velocity *= uniform(-MUTABILITY, MUTABILITY)
 
     def __str__(self):
 
         str = """
         Organism velocity: {}
         Organism position: {}
-        Organism meals: {}""".format(self.velocity, self.pos, self.meals)
+        Organism meals: {}""".format(self.traits.velocity, self.pos, self.meals)
 
         return str
 
@@ -113,9 +101,8 @@ class AltruisticOrganism (BaseOrganism):
         List of organisms that received food from this organism.
         """
 
-    def __init__(self, velocity=uniform(1, 2), altruistic=None):
-        super().__init__()
-        self.altruistic = bool(getrandbits(1)) if altruistic is None else altruistic
+    def __init__(self, traits):
+        super().__init__(traits)
         self.shared = False
         self.received_from = []  # For future implementation of reciprocity mechanisms, for the moment useless.
         self.shared_to = []
@@ -146,6 +133,6 @@ class AltruisticOrganism (BaseOrganism):
         Organism is altruistic: {}
         Organism velocity: {}
         Organism position: {}
-        Organism meals: {}""".format(self.altruistic, self.velocity, self.pos, self.meals)
+        Organism meals: {}""".format(self.traits.altruistic, self.traits.velocity, self.pos, self.meals)
 
         return str
