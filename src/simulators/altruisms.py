@@ -1,6 +1,6 @@
 from wallawin.src.base_simulator import BaseSimulator
 from wallawin.src.orgs import AltruisticOrganism
-from wallawin.src.settings import SIM_SETTINGS, PLOT_SETTINGS, Settings
+from wallawin.src.settings import PLOT_SETTINGS, SimSettings, TakeOrShareSettings, Traits
 from wallawin.src.plotter import alt_plot_epoch_data, plot_step
 
 from random import randint, uniform, choice
@@ -12,19 +12,20 @@ import numpy as np
 class BaseAltruismSimulator (BaseSimulator):
     """Base class for all Simulators centered on altruismtic traits."""
 
-    def __init__(self, settings):
+    def __init__(self, sim_settings, altruistic_org_traits, selfish_org_traits):
         """
         Parameters
         ---------
-        settings : Settings
+        sim_settings : SimSettings
             Settings object defining the particular settings of this simulator.
         """
-        super().__init__(settings)
-        self.alt_pop = [x for x in self.generation if x.altruistic]
-        self.self_pop = [x for x in self.generation if not x.altruistic]
+        self.altruistic_org_traits = altruistic_org_traits
+        self.selfish_org_traits = selfish_org_traits
+        super().__init__(sim_settings)
+        self.alt_pop = [x for x in self.generation if x.traits.altruistic]
+        self.selfish_pop = [x for x in self.generation if not x.traits.altruistic]
 
-    @staticmethod
-    def gen_population(size):
+    def gen_population(self, size):
         """
         Method that generates an initial set of organisms, halved by altruistic and selfish individuals.
 
@@ -34,9 +35,9 @@ class BaseAltruismSimulator (BaseSimulator):
             The number of organisms of the starting population.
         """
         half = int(size / 2)
-        alt_pop = [AltruisticOrganism(altruistic=True, velocity=5) for x in range(0, half)]
-        self_pop = [AltruisticOrganism(altruistic=False, velocity=5) for x in range(0, half)]
-        return alt_pop + self_pop
+        self.alt_pop = [AltruisticOrganism(self.altruistic_org_traits) for x in range(0, half)]
+        self.selfish_pop = [AltruisticOrganism(self.selfish_org_traits) for x in range(0, half)]
+        return self.alt_pop + self.selfish_pop
 
     def fitness_function(self, org):
         """Evaluate fitness of organism org in relation to the amount of meals it ate.
@@ -59,13 +60,13 @@ class BaseAltruismSimulator (BaseSimulator):
 
         if randint(0, 100) <= rep_chance:
             chiral = copy.deepcopy(org)
-            chiral.pos = np.array([uniform(0, SIM_SETTINGS['ENV_SIZE_X']), uniform(0, SIM_SETTINGS['ENV_SIZE_Y'])])
+            chiral.pos = np.array([uniform(0, self.settings.env_size_x), uniform(0, self.settings.env_size_y)])
             chiral.age = 0
             if randint(0, 100) <= self.settings.mutation_chance:
                 chiral.mutate()
             self.generation.append(chiral)
 
-        if org.age >= self.settings.longevity:
+        if org.age >= org.traits.longevity:
             self.kill(org)
 
         org.pos = org.start_pos
@@ -124,12 +125,12 @@ class BaseAltruismSimulator (BaseSimulator):
         epoch_data : dictionary
             A dictionary containing relevant data from this epoch."""
 
-        speed_values = [x.velocity for x in self.generation]
+        speed_values = [x.traits.velocity for x in self.generation]
 
         pop_size = len(self.generation)
         avg_speed = sum(speed_values) / pop_size if pop_size != 0 else sum(speed_values) / 1
-        abs_altruistic_population = len([x for x in self.generation if x.altruistic])
-        abs_selfish_population = len([x for x in self.generation if not x.altruistic])
+        abs_altruistic_population = len([x for x in self.generation if x.traits.altruistic])
+        abs_selfish_population = len([x for x in self.generation if not x.traits.altruistic])
         epoch_data[epoch] = [pop_size, avg_speed, abs_altruistic_population, abs_selfish_population]
 
     def simulate(self, runs=1):
@@ -149,7 +150,7 @@ class BaseAltruismSimulator (BaseSimulator):
 
             while True:
                 step += 1
-                if step > SIM_SETTINGS['STEPS'] or len(self.generation) == 0:
+                if step > self.settings.steps or len(self.generation) == 0:
                     alt_plot_epoch_data(epoch_data, run)
                     self.generation = self.gen_population(self.settings.pop_size)
                     break
@@ -174,8 +175,8 @@ class SharingSimulator (BaseAltruismSimulator):
     the survival of another altruistic organisms. Selfish organisms will always keep
     their food for themselves."""
 
-    def __init__(self, settings):
-        super().__init__(settings)
+    def __init__(self, sim_settings):
+        super().__init__(sim_settings)
 
     def altruism(self):
         """Simulates altruistic behavior by making altruistic organisms with
@@ -227,19 +228,16 @@ class TakeOrShareSimulator (BaseAltruismSimulator):
         Subset of self.generation containing organisms not competing for a food particle.
         """
 
-    def __init__(self, settings, both_altruistic_chance = 0.5, both_selfish_chance = 0.2,
-                         alt_and_selfish_chance = [0.2, 0.8]):
-        super().__init__(settings)
-        self.both_altruistic_chance = both_altruistic_chance
-        self.both_selfish_chance = both_selfish_chance
-        self.alt_and_selfish_chance = alt_and_selfish_chance
+    def __init__(self, sim_settings, altruistic_org_traits, selfish_org_traits):
+
+        super().__init__(sim_settings, altruistic_org_traits, selfish_org_traits)
         self.competitors = []  # Subset of self.generation containing organisms competing for a food particle.
         self.not_compiting = []  # Subset of self.generation containing organisms not competing for a food particle.
 
-    @staticmethod
-    def gen_population(size):
-        alt_pop = [AltruisticOrganism(altruistic=False, velocity=5)]
-        self_pop = [AltruisticOrganism(altruistic=True, velocity=5) for x in range(0, size - 1)]
+    def gen_population(self, size):
+        print(self.settings)
+        alt_pop = [AltruisticOrganism(self.altruistic_org_traits) for x in range(0, size - 1)]
+        self_pop = [AltruisticOrganism(self.selfish_org_traits)]
         return alt_pop + self_pop
 
     def sim_competition(self, organisms):
@@ -285,15 +283,15 @@ class TakeOrShareSimulator (BaseAltruismSimulator):
 
         for pair in self.competitors:
 
-            if pair[0].altruistic and pair[1].altruistic:
-                pair[0].meals = pair[1].meals = self.both_altruistic_chance
-            if not pair[0].altruistic and not pair[1].altruistic:
-                pair[0].meals = pair[1].meals = self.both_selfish_chance
+            if pair[0].traits.altruistic and pair[1].traits.altruistic:
+                pair[0].meals = pair[1].meals = self.settings.both_altruistic_chance
+            if not pair[0].traits.altruistic and not pair[1].traits.altruistic:
+                pair[0].meals = pair[1].meals = self.settings.both_selfish_chance
             else:
-                selfish = pair[1] if pair[0].altruistic else pair[0]
+                selfish = pair[1] if pair[0].traits.altruistic else pair[0]
                 altruistic = pair[1] if selfish is pair[0] else pair[0]
-                selfish.meals = self.alt_and_selfish_chance[1]
-                altruistic.meals = self.alt_and_selfish_chance[0]
+                selfish.meals = self.settings.alt_and_selfish_chance[1]
+                altruistic.meals = self.settings.alt_and_selfish_chance[0]
 
     def simulate(self, runs=1):
         """Simulate the evolution process, plot and save the data for as many runs
@@ -311,7 +309,7 @@ class TakeOrShareSimulator (BaseAltruismSimulator):
 
             while True:
 
-                if epoch > SIM_SETTINGS['STEPS'] or len(self.generation) == 0:
+                if epoch > self.settings.steps or len(self.generation) == 0:
                     alt_plot_epoch_data(epoch_data, run)
                     break
 
@@ -324,6 +322,12 @@ class TakeOrShareSimulator (BaseAltruismSimulator):
                 epoch += 1
 
 
-SETTINGS = Settings(10, 1, rep_factor=100, longevity=2, starvation=False, static_food_generation=False)
-ENV = TakeOrShareSimulator(SETTINGS)
+SETTINGS = TakeOrShareSettings(steps=100, pop_size=10, abundance=1, rep_factor=100, base_longevity=2, starvation=False,
+                               static_food_generation=False, both_altruistic_chance=0.4, both_selfish_chance=0.1,
+                               alt_and_selfish_chance=[0.2, 0.8])
+
+ALT_ORG_SETTINGS = Traits(longevity=2, altruistic=True)
+SELF_ORG_SETTINGS = Traits(longevity=2, altruistic=False)
+
+ENV = TakeOrShareSimulator(SETTINGS, altruistic_org_traits=ALT_ORG_SETTINGS, selfish_org_traits=SELF_ORG_SETTINGS)
 ENV.simulate()

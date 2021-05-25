@@ -11,13 +11,13 @@ class DepletionEnvironment (BaseSimulator):
     After the food is done or everyone ate two meals, natural selection is applied
     and a new offspring generated."""
 
-    def __init__(self, settings):
-        super().__init__(settings)
+    def __init__(self, sim_settings, org_settings):
+        super().__init__(sim_settings)
+        self.org_settings = org_settings
 
-    @staticmethod
-    def gen_population(size):
+    def gen_population(self, size):
 
-        population = [BaseOrganism() for x in range(0, size)]
+        population = [BaseOrganism(self.org_settings) for x in range(0, size)]
         return population
 
     def evolve(self):
