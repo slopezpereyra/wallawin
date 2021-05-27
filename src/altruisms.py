@@ -1,15 +1,15 @@
 from wallawin.src.base_simulator import BaseSimulator
 from wallawin.src.orgs import AltruisticOrganism
 from wallawin.src.settings import PLOT_SETTINGS, SimSettings, TakeOrShareSettings, Traits
-from wallawin.src.plotter import alt_plot_epoch_data, plot_step
+from wallawin.src.data_representation import share_or_take_plot, plot_env
 
-from random import randint, uniform, choice
+from random import randint, uniform, choice, sample
 from math import dist
 import copy
 import numpy as np
 
 
-class BaseAltruismSimulator (BaseSimulator):
+class BaseAltruismSimulator(BaseSimulator):
     """Base class for all Simulators centered on altruismtic traits."""
 
     def __init__(self, sim_settings, altruistic_org_traits, selfish_org_traits):
@@ -35,8 +35,8 @@ class BaseAltruismSimulator (BaseSimulator):
             The number of organisms of the starting population.
         """
         half = int(size / 2)
-        self.alt_pop = [AltruisticOrganism(self.altruistic_org_traits) for x in range(0, half)]
-        self.selfish_pop = [AltruisticOrganism(self.selfish_org_traits) for x in range(0, half)]
+        self.alt_pop = [AltruisticOrganism(self.env_size, self.altruistic_org_traits) for x in range(0, half)]
+        self.selfish_pop = [AltruisticOrganism(self.env_size, self.selfish_org_traits) for x in range(0, half)]
         return self.alt_pop + self.selfish_pop
 
     def fitness_function(self, org):
@@ -54,7 +54,6 @@ class BaseAltruismSimulator (BaseSimulator):
 
         if org.meals == 0 and self.settings.starvation:
             self.kill(org)
-            print("Killing")
             return
 
         rep_chance = org.meals * self.settings.rep_factor
@@ -108,23 +107,20 @@ class BaseAltruismSimulator (BaseSimulator):
             self.fitness_function(org)
 
         self.food = self.gen_food()
-        print(len(self.food), " and ", len(self.generation))
 
     def altruism(self):
         """Base altruism method. The child classes will define their particular altruistic simulations
         by overriding this method."""
         pass
 
-    def set_epoch_data(self, epoch, epoch_data):
+    def get_epoch_data(self, epoch):
         """Gather generational data for generation of epoch and
         set it into the epoc_data dictionary (used for plotting).
 
         Parameters
         ----------
         epoch : int
-            Current epoch (step) of the simulation.
-        epoch_data : dictionary
-            A dictionary containing relevant data from this epoch."""
+            Current epoch (step) of the simulation."""
 
         speed_values = [x.traits.velocity for x in self.generation]
 
@@ -132,12 +128,32 @@ class BaseAltruismSimulator (BaseSimulator):
         avg_speed = sum(speed_values) / pop_size if pop_size != 0 else sum(speed_values) / 1
         abs_altruistic_population = len([x for x in self.generation if x.traits.altruistic])
         abs_selfish_population = len([x for x in self.generation if not x.traits.altruistic])
-        epoch_data[epoch] = [pop_size, avg_speed, abs_altruistic_population, abs_selfish_population]
+        pop_growth_rate = pop_size - self.data[epoch - 1]['Population Size'] if epoch > 0 else 0
+
+        rel_altruistic_population = abs_altruistic_population / pop_size if pop_size != 0 else 0
+        rel_selfish_population = abs_selfish_population / pop_size if pop_size != 0 else 0
+
+        if abs_selfish_population != 0:
+            altruistic_per_selfish_organisms = abs_altruistic_population / abs_selfish_population
+        else:
+            altruistic_per_selfish_organisms = 0
+        if abs_altruistic_population != 0:
+            selfish_per_altruistic_organisms = abs_selfish_population / abs_altruistic_population
+        else:
+            selfish_per_altruistic_organisms = 1
+
+        self.data[epoch] = {'Population Size': pop_size, 'Average Speed': avg_speed,
+                            'Population Growth Rate': pop_growth_rate,
+                            'Altruistic Population': abs_altruistic_population,
+                            'Selfish Population': abs_selfish_population,
+                            'Altruistic Population Percentage': rel_altruistic_population,
+                            'Selfish Population Percentage': rel_selfish_population,
+                            'Altruistic organisms per selfish organism': altruistic_per_selfish_organisms,
+                            'Selfish organisms per altruistic organisms': selfish_per_altruistic_organisms}
 
     def simulate(self):
         """Simulate the evolution process, plot and save the data for as many runs
         as specified."""
-
 
         for run in range(0, self.settings.runs):
 
@@ -148,32 +164,32 @@ class BaseAltruismSimulator (BaseSimulator):
             while True:
                 step += 1
                 if step > self.settings.steps or len(self.generation) == 0:
-                    alt_plot_epoch_data(epoch_data, run)
+                    share_or_take_plot(epoch_data, run)
                     self.generation = self.gen_population(self.settings.pop_size)
                     break
 
                 if PLOT_SETTINGS['PLOT'] is True and step % 5 == 0:
-                    plot_step(self.generation, self.food, step, epoch)
+                    plot_env(self.generation, self.food, step, epoch)
 
                 if not active_individuals:
                     self.evolve()
                     epoch += 1
                     active_individuals = self.generation.copy()
-                    self.set_epoch_data(epoch, epoch_data)
+                    self.get_epoch_data(epoch, epoch_data)
                     continue
 
                 self.sim_competition(active_individuals)
 
 
-class SharingSimulator (BaseAltruismSimulator):
+class SharingSimulator(BaseAltruismSimulator):
     """Simulator in which altruistic organisms will, if the can survive doing so,
     share a meal with another altruistic organism that failed at getting any on their own.
     Thus they sacrifice reproductive potential in exchange of ensuring
     the survival of another altruistic organisms. Selfish organisms will always keep
     their food for themselves."""
 
-    def __init__(self, sim_settings):
-        super().__init__(sim_settings)
+    def __init__(self, sim_settings, alt_org_traits, selfish_org_traits):
+        super().__init__(sim_settings, alt_org_traits, selfish_org_traits)
 
     def altruism(self):
         """Simulates altruistic behavior by making altruistic organisms with
@@ -191,8 +207,7 @@ class SharingSimulator (BaseAltruismSimulator):
             org.share(recipient)
 
 
-class TakeOrShareSimulator (BaseAltruismSimulator):
-
+class TakeOrShareSimulator(BaseAltruismSimulator):
     """Simulator in which all organisms are garanteed to find a meal. Same meal may be found by
     two different organisms. If that is the case, the issue will be solved according to whether
     the encountering organisms are both altruistic, both selfish or one of each.
@@ -217,9 +232,8 @@ class TakeOrShareSimulator (BaseAltruismSimulator):
         self.not_compiting = []  # Subset of self.generation containing organisms not competing for a food particle.
 
     def gen_population(self, size):
-        print(self.settings)
-        alt_pop = [AltruisticOrganism(self.altruistic_org_traits) for x in range(0, size - 1)]
-        self_pop = [AltruisticOrganism(self.selfish_org_traits)]
+        alt_pop = [AltruisticOrganism(self.env_size, self.altruistic_org_traits) for x in range(0, size - 1)]
+        self_pop = [AltruisticOrganism(self.env_size, self.selfish_org_traits)]
         return alt_pop + self_pop
 
     def sim_competition(self, organisms):
@@ -238,9 +252,11 @@ class TakeOrShareSimulator (BaseAltruismSimulator):
 
         chosen_food = []
 
-        for org in organisms:
+        for org in sample(organisms, len(organisms)):
             # Chose a random food particle that hasn't been chosen by more than one other organism.
             available_food = [food for food in self.food if chosen_food.count(food) < 2]
+            if not available_food:
+                break
             food = choice(available_food)
 
             # Check if the particle has been chosen by another organism before.
@@ -287,29 +303,28 @@ class TakeOrShareSimulator (BaseAltruismSimulator):
         for run in range(0, runs):
 
             epoch = 0
-            epoch_data = {}
 
             while True:
 
                 if epoch > self.settings.steps or len(self.generation) == 0:
-                    alt_plot_epoch_data(epoch_data, run)
+                    share_or_take_plot(self.data, self.settings.simulation_name)
                     break
 
-                print("EPOCH : ", epoch, " POP ", len(self.generation))
                 self.sim_competition(self.generation)
                 for org in self.not_compiting:
                     org.meals += 1
                 self.evolve()
-                self.set_epoch_data(epoch, epoch_data)
+                self.get_epoch_data(epoch)
                 epoch += 1
+                print("Epoch : ", epoch, " Pop Size : ", len(self.generation))
 
 
-SETTINGS = TakeOrShareSettings(steps=100, pop_size=10, abundance=1, rep_factor=100, base_longevity=2,
-                               starvation=False, static_food_generation=False, both_altruistic_chance=0.6,
+SETTINGS = TakeOrShareSettings(steps=100, pop_size=10, abundance=0.8, rep_factor=100, simulation_name="test_3",
+                               base_longevity=5,
+                               starvation=True, static_food_generation=True, both_altruistic_chance=0.8,
                                both_selfish_chance=0.2, alt_and_selfish_chance=[0.2, 0.8])
-ALT_ORG_SETTINGS = Traits(longevity=2, altruistic=True)
-SELF_ORG_SETTINGS = Traits(longevity=2, altruistic=False)
+ALT_ORG_SETTINGS = Traits(longevity=3, altruistic=True)
+SELF_ORG_SETTINGS = Traits(longevity=3, altruistic=False)
 
 ENV = TakeOrShareSimulator(SETTINGS, altruistic_org_traits=ALT_ORG_SETTINGS, selfish_org_traits=SELF_ORG_SETTINGS)
-print(ENV.settings.steps)
 ENV.simulate()

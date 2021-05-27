@@ -1,16 +1,10 @@
 """Stores global settings for the simulation."""
 
-SIM_SETTINGS = {'ENV_SIZE_X': 100,
-                'ENV_SIZE_Y': 100,
-                'STEPS': 100}
-
 PLOT_SETTINGS = {'PLOT': False,
                  'X_MIN': 0.0,
                  'X_MAX': 100.0,
                  'Y_MIN': 0.0,
                  'Y_MAX': 100.0}
-
-ENV_SETTINGS = {'POP_SIZE'}
 
 
 class SimSettings:
@@ -58,7 +52,8 @@ class SimSettings:
         that involve movement.
     """
 
-    def __init__(self, steps, pop_size, abundance, rep_factor, runs=1, mutation_chance=10, mutability=1.2,
+    def __init__(self, steps, pop_size, abundance, rep_factor, simulation_name, runs=1, mutation_chance=10,
+                 mutability=1.2,
                  feading_range=10,
                  base_longevity=400000, risk=0, starvation=True, static_food_generation=True,
                  env_size_x=100, env_size_y=100):
@@ -76,6 +71,40 @@ class SimSettings:
         self.static_food_generation = static_food_generation
         self.env_size_x = env_size_x
         self.env_size_y = env_size_y
+        self.simulation_name = simulation_name
+
+    def __str__(self):
+
+        string = """
+        SIMULATION SETTINGS
+         
+        STEPS : {}
+        INITIAL POPULATION : {}
+        RUNS : {}
+        ENVIRONMENT SIZE {}x{}
+        
+        ECOLOGICAL/ENVIRONMENTAL SETTINGS
+        
+        ABUNDANCE : {}
+        BASE LONGEVITY : {}
+        STATIC FOOD GENERATION : {}
+        STARVATION : {}        
+        RISK : {}
+
+        REPRODUCTIVE SETTINGS 
+        
+        REPRODUCTION FACTOR : {}
+        MUTATION CHANCE : {}
+        MUTABILITY : {}
+        
+        OTHERS
+        
+        FEADING RANGE : {}
+        """.format(self.steps, self.pop_size, self.runs, self.env_size_x, self.env_size_y, self.abundance,
+                   self.base_longevity, self.static_food_generation, self.starvation, self.risk, self.rep_factor,
+                   self.mutation_chance, self.mutability, self.feading_range)
+
+        return string
 
 
 class TakeOrShareSettings(SimSettings):
@@ -131,18 +160,61 @@ class TakeOrShareSettings(SimSettings):
             l[0] is the chance of reproduction of the first and l[1] that of the second.
         """
 
-    def __init__(self, steps, pop_size, abundance, rep_factor, runs=1, mutation_chance=10, mutability=1.2,
+    def __init__(self, steps, pop_size, abundance, rep_factor, simulation_name, runs=1, mutation_chance=10,
+                 mutability=1.2,
                  feading_range=10,
                  base_longevity=400000, risk=0, starvation=True, static_food_generation=True,
                  env_size_x=100, env_size_y=100, both_altruistic_chance=0.5, both_selfish_chance=0.2,
                  alt_and_selfish_chance=[0.2, 0.8]):
-
-        super().__init__(steps, pop_size, abundance, rep_factor, runs, mutation_chance, mutability,
-                 feading_range, base_longevity, risk, starvation, static_food_generation,
-                 env_size_x, env_size_y)
+        super().__init__(steps, pop_size, abundance, rep_factor, simulation_name, runs, mutation_chance, mutability,
+                         feading_range, base_longevity, risk, starvation, static_food_generation,
+                         env_size_x, env_size_y)
         self.both_altruistic_chance = both_altruistic_chance
         self.both_selfish_chance = both_selfish_chance
         self.alt_and_selfish_chance = alt_and_selfish_chance
+
+    def __str__(self):
+
+        string = """
+                SIMULATION SETTINGS
+
+                STEPS : {}
+                INITIAL POPULATION : {}
+                RUNS : {}
+                ENVIRONMENT SIZE {}x{}
+
+                ECOLOGICAL/ENVIRONMENTAL SETTINGS
+
+                ABUNDANCE : {}
+                BASE LONGEVITY : {}
+                STATIC FOOD GENERATION : {}
+                STARVATION : {}        
+                RISK : {}
+
+                REPRODUCTIVE SETTINGS 
+
+                REPRODUCTION FACTOR : {}
+                MUTATION CHANCE : {}
+                MUTABILITY : {}
+                
+                REPRODUCTION CHANCES:
+                
+                BOTH ALTRUISTIC : {}
+                BOTH SELFISH : {}
+                ALTRUISTIC THAT MEETS SELFISH : {}
+                SELFISH THAT MEETS ALTRUISTIC : {}
+
+                OTHERS
+
+                FEADING RANGE : {}
+                """.format(self.steps, self.pop_size, self.runs, self.env_size_x, self.env_size_y, self.abundance,
+                           self.base_longevity, self.static_food_generation, self.starvation, self.risk,
+                           self.rep_factor,
+                           self.mutation_chance, self.mutability, self.both_altruistic_chance,
+                           self.both_selfish_chance, self.alt_and_selfish_chance[0],
+                           self.alt_and_selfish_chance[1], self.feading_range)
+
+        return string
 
 
 class Traits:
@@ -174,4 +246,4 @@ class Traits:
         self.altruistic = altruistic
 
 
-TEST = TakeOrShareSettings(100, 10, 2, 100, base_longevity=33, static_food_generation=True)
+TEST = TakeOrShareSettings(100, 10, 2, 100, simulation_name="test_1", base_longevity=33, static_food_generation=True)
