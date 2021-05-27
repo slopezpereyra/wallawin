@@ -3,14 +3,15 @@ It's where the magic happens."""
 
 from random import uniform, randint
 from math import floor, dist
-from wallawin.src.settings import SIM_SETTINGS
+from wallawin.src.data_representation import save_simulation_settings
+import os
 
 
 class Food:
     """Definse a Food object which the organisms can consume."""
 
-    def __init__(self):
-        self.pos = [uniform(0, SIM_SETTINGS['ENV_SIZE_X']), uniform(0, SIM_SETTINGS['ENV_SIZE_Y'])]
+    def __init__(self, pos):
+        self.pos = pos
 
 
 class BaseSimulator:
@@ -31,8 +32,13 @@ class BaseSimulator:
         a Settings object as argument."""
 
         self.settings = sim_settings
+        self.env_size = [self.settings.env_size_x, self.settings.env_size_y]
         self.generation = self.gen_population(sim_settings.pop_size)
         self.food = self.gen_food()
+        self.data = {}
+
+        os.mkdir('data/{}'.format(self.settings.simulation_name))
+        save_simulation_settings(self.settings, self.settings.simulation_name)
 
     def gen_food(self):
         """Generate the food in the environment. If the food generation is static, then the same amount of food will
@@ -41,9 +47,11 @@ class BaseSimulator:
        """
 
         if self.settings.static_food_generation:
-            food = [Food() for x in range(0, floor(self.settings.pop_size * self.settings.abundance))]
+            food = [Food([uniform(0, self.settings.env_size_x), uniform(0, self.settings.env_size_y)])
+                    for x in range(0, floor(self.settings.pop_size * self.settings.abundance))]
         else:
-            food = [Food() for x in range(0, floor(len(self.generation) * self.settings.abundance))]
+            food = [Food([uniform(0, self.settings.env_size_x), uniform(0, self.settings.env_size_y)])
+                    for x in range(0, floor(len(self.generation) * self.settings.abundance))]
 
         return food
 

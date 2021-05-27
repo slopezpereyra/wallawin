@@ -3,7 +3,6 @@
 from random import uniform, getrandbits
 from math import dist
 import numpy as np
-from wallawin.src.settings import SIM_SETTINGS
 
 
 class BaseOrganism:
@@ -20,9 +19,9 @@ class BaseOrganism:
     meals : int
         Amount of food particles consumed by the organism in each evolutionary step."""
 
-    def __init__(self, traits):
+    def __init__(self, env_size, traits):
+        self.pos = np.array([uniform(0, env_size[0]), uniform(0, env_size[1])])
         self.traits = traits
-        self.pos = np.array([uniform(0, SIM_SETTINGS['ENV_SIZE_X']), uniform(0, SIM_SETTINGS['ENV_SIZE_Y'])])
         self.start_pos = self.pos
         self.meals = 0
         self.age = 0
@@ -101,8 +100,8 @@ class AltruisticOrganism (BaseOrganism):
         List of organisms that received food from this organism.
         """
 
-    def __init__(self, traits):
-        super().__init__(traits)
+    def __init__(self, env_size, traits):
+        super().__init__(env_size, traits)
         self.shared = False
         self.received_from = []  # For future implementation of reciprocity mechanisms, for the moment useless.
         self.shared_to = []
