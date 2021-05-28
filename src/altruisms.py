@@ -1,3 +1,5 @@
+import collections
+
 from wallawin.src.base_simulator import BaseSimulator
 from wallawin.src.orgs import AltruisticOrganism
 from wallawin.src.settings import PLOT_SETTINGS, SimSettings, TakeOrShareSettings, Traits
@@ -101,7 +103,6 @@ class BaseAltruismSimulator(BaseSimulator):
         Then reset organism's meals attribute and regenerate food in the environment."""
 
         self.altruism()
-        # A graph of the previous epoch population data and new epoch population data would be useful here.
         for org in self.generation.copy():
             org.age += 1
             self.fitness_function(org)
@@ -228,19 +229,29 @@ class TakeOrShareSimulator(BaseAltruismSimulator):
     def __init__(self, sim_settings, altruistic_org_traits, selfish_org_traits):
 
         super().__init__(sim_settings, altruistic_org_traits, selfish_org_traits)
-        self.competitors = []  # Subset of self.generation containing organisms competing for a food particle.
-        self.not_compiting = []  # Subset of self.generation containing organisms not competing for a food particle.
+        self.chosen_food = collections.defaultdict(list)
 
     def gen_population(self, size):
         alt_pop = [AltruisticOrganism(self.env_size, self.altruistic_org_traits) for x in range(0, size - 1)]
         self_pop = [AltruisticOrganism(self.env_size, self.selfish_org_traits)]
         return alt_pop + self_pop
 
-    def sim_competition(self, organisms):
-        """Simulate competition for food in the environment
-        given a list of Organism objects by making them chose a random food
-        particle and attempt to eat it. If the food particle has also been chosen
-        by another individual, they will compete for it with three possible cases:
+    def sim_competition(self):
+        """Simulate competition for food by randomly pairing an organism of the generation with a food particle that
+        hasn't been chosen by more than one other organism. These creates the possibility that an organism may chose a
+        food particle already picked by another, with eventual altruistic/selfish resolutions of the conflict."""
+
+        for org in sample(self.generation, len(self.generation)):
+            # Chose a random food particle that hasn't been chosen by more than one other organism.
+            available_food = [food for food in self.food if len(self.chosen_food[food]) < 2]
+            if not available_food:
+                break
+            food = choice(available_food)
+            self.chosen_food[food].append(org)
+
+    def altruism(self):
+        """Simulates altruistic/selfish behavior by determining whether competing pairs should share, take or fight
+        for the food, according to the altruistic gen. Three possible cases:
 
         Both individuals are altruistic:
             Food will be shared. Both survive to the next epoch with low chances of reproduction.
@@ -250,55 +261,33 @@ class TakeOrShareSimulator(BaseAltruismSimulator):
         Both individuals are selfish:
             The individuals will fight for the food with tremendous cost of energy. Very low chance of reproduction."""
 
-        chosen_food = []
+        for orgs in self.chosen_food.values():
+            if len(orgs) == 0:
+                continue
+            if len(orgs) == 1:
+                orgs[0].meals += 1
+                continue
 
-        for org in sample(organisms, len(organisms)):
-            # Chose a random food particle that hasn't been chosen by more than one other organism.
-            available_food = [food for food in self.food if chosen_food.count(food) < 2]
-            if not available_food:
-                break
-            food = choice(available_food)
+            altruism_a = orgs[0].traits.altruistic
+            altruism_b = orgs[1].traits.altruistic
 
-            # Check if the particle has been chosen by another organism before.
-            if food in chosen_food:
-                # If that is the case, find the organism that previously chose it and
-                # associate it with org as a tuple in the competitors list.
-                # Also remove competitor from the list of not compiting organisms.
-                competitor = next(x for x in organisms if x.food is food)
-                self.competitors.append((org, competitor))
-                self.not_compiting.remove(competitor)
+            if altruism_a and altruism_b:
+                orgs[0].meals = orgs[1].meals = self.settings.both_altruistic_chance
+            elif not altruism_a and not altruism_b:
+                orgs[0].meals = orgs[1].meals = self.settings.both_selfish_chance
             else:
-                # If the particle is free for grabs, add the organism to the not compiting list.
-                self.not_compiting.append(org)
-
-            org.food = food
-            chosen_food.append(org.food)
-
-    def altruism(self):
-        """Simulates altruistic behavior by determining whether competing pairs
-        should share, take or fight for the food, according to the altruistic
-        behavior of the involved organisms."""
-
-        for pair in self.competitors:
-
-            if pair[0].traits.altruistic and pair[1].traits.altruistic:
-                pair[0].meals = pair[1].meals = self.settings.both_altruistic_chance
-            if not pair[0].traits.altruistic and not pair[1].traits.altruistic:
-                pair[0].meals = pair[1].meals = self.settings.both_selfish_chance
-            else:
-                selfish = pair[1] if pair[0].traits.altruistic else pair[0]
-                altruistic = pair[1] if selfish is pair[0] else pair[0]
+                selfish = orgs[1] if altruism_a else orgs[0]
+                altruistic = orgs[1] if selfish is orgs[0] else orgs[0]
                 selfish.meals = self.settings.alt_and_selfish_chance[1]
                 altruistic.meals = self.settings.alt_and_selfish_chance[0]
 
     def simulate(self, runs=1):
-        """Simulate the evolution process, plot and save the data for as many runs
-                as specified.
+        """Simulate the evolution process, plot and save the data for as many runs as specified.
 
-                Parameters
-                ----------
-                runs : int
-                    Number of times the simulation will be run. Set to 1 by default."""
+        Parameters
+        ----------
+        runs : int
+            Number of times the simulation will be run. Set to 1 by default."""
 
         for run in range(0, runs):
 
@@ -310,21 +299,20 @@ class TakeOrShareSimulator(BaseAltruismSimulator):
                     share_or_take_plot(self.data, self.settings.simulation_name)
                     break
 
-                self.sim_competition(self.generation)
-                for org in self.not_compiting:
-                    org.meals += 1
+                self.sim_competition()
                 self.evolve()
                 self.get_epoch_data(epoch)
+                print("Epoch : ", epoch, " ------- Pop Size : ", len(self.generation),
+                ' ------- ', self.data[epoch]['Selfish Population Percentage'])
                 epoch += 1
-                print("Epoch : ", epoch, " Pop Size : ", len(self.generation))
 
 
-SETTINGS = TakeOrShareSettings(steps=100, pop_size=10, abundance=0.8, rep_factor=100, simulation_name="test_3",
-                               base_longevity=5,
-                               starvation=True, static_food_generation=True, both_altruistic_chance=0.8,
-                               both_selfish_chance=0.2, alt_and_selfish_chance=[0.2, 0.8])
-ALT_ORG_SETTINGS = Traits(longevity=3, altruistic=True)
-SELF_ORG_SETTINGS = Traits(longevity=3, altruistic=False)
+SETTINGS = TakeOrShareSettings(steps=200, pop_size=10, abundance=100, rep_factor=100, simulation_name="test_8",
+                               base_longevity=2,
+                               starvation=True, static_food_generation=True, both_altruistic_chance=0.5,
+                               both_selfish_chance=0, alt_and_selfish_chance=[0.2, 0.8])
+ALT_ORG_SETTINGS = Traits(longevity=2, altruistic=True)
+SELF_ORG_SETTINGS = Traits(longevity=2, altruistic=False)
 
 ENV = TakeOrShareSimulator(SETTINGS, altruistic_org_traits=ALT_ORG_SETTINGS, selfish_org_traits=SELF_ORG_SETTINGS)
 ENV.simulate()
