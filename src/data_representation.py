@@ -1,10 +1,11 @@
 from matplotlib import pyplot
 from matplotlib.patches import Circle, Patch
-from settings import PLOT_SETTINGS
+from wallawin.src.settings import PLOT_SETTINGS
 import numpy as np
+from os import mkdir
 
 
-def plot_step(generation, food, step_num, gen_num):
+def plot_env(generation, food, step_num, gen_num):
     """Function that plots a particular step of the evolutionary simulation."""
 
     figure, axis = pyplot.subplots()
@@ -36,22 +37,42 @@ def plot_step(generation, food, step_num, gen_num):
     pyplot.savefig('step {}.png'.format(step_num), dpi=100)
 
 
-def alt_plot_epoch_data(data, run):
+def share_or_take_plot(data, name):
 
     figure2, axis = pyplot.subplots()
-
     x_axis = np.array(list(data.keys()))
-    print(data)
-    print(data[0][0])
     # Iterate through each step on the data dictionary getting the relevant data.
-    y_pop_size = np.array([data[x][0] for x in range(0, len(x_axis))])
-    abs_selfish_pop = np.array([data[x][3] for x in range(0, len(x_axis))])
+    y_pop_size = np.array([data[x]['Population Size'] for x in range(0, len(x_axis))])
+    abs_selfish_pop = np.array([data[x]['Selfish Population'] for x in range(0, len(x_axis))])
 
     red_patch = Patch(color='red', label='Selfish population')
     blue_patch = Patch(color='blue', label='Altruistic population')
     pyplot.legend(handles=[red_patch, blue_patch])
     pyplot.xlabel("Generations")
-    pyplot.ylabel("Data")
+    pyplot.ylabel("Population")
     pyplot.fill_between(x_axis, y_pop_size)
     pyplot.fill_between(x_axis, abs_selfish_pop, facecolor="red")
-    pyplot.savefig("data_{}".format(run))
+    pyplot.savefig("data/{}/total_pop_data_{}".format(name, name))
+
+    y_selfish_percentage = np.array([data[x]['Selfish Population Percentage'] for x in range(0, len(x_axis))])
+    y_alt_percentage = np.array([data[x]['Altruistic Population Percentage'] for x in range(0, len(x_axis))])
+
+    figure2, axis = pyplot.subplots()
+    pyplot.xlabel("Generations")
+    pyplot.ylabel("Population Percentage")
+    pyplot.plot(x_axis, y_selfish_percentage, color='red')
+    pyplot.plot(x_axis, y_alt_percentage, color='blue')
+    pyplot.savefig("data/{}/percentual_pop_data_{}".format(name, name))
+
+    y_growth_rate = np.array([data[x]['Population Growth Rate'] for x in range(0, len(x_axis))])
+
+    figure2, axis = pyplot.subplots()
+    pyplot.xlabel("Generations")
+    pyplot.ylabel("Population Growth Rate")
+    pyplot.plot(x_axis, y_growth_rate)
+    pyplot.savefig("data/{}/pop_growth_rate_data_{}".format(name, name))
+
+
+def save_simulation_settings(settings, name):
+    f = open('data/{}/settings.txt'.format(name), "w+")
+    f.write(str(settings))
