@@ -24,9 +24,17 @@ Selfish individuals will never share their extra food with other organisms, and 
 
 All organisms are garanteed to find a meal, but a single meal may be found by two of them. If this is the case, they'll decide how to resolve this problem based on both of their altruistic alleles. If two altruistic individuals encounter each other, they'll split the meal ensuring a medium chance of reproduction for each of them. If both are selfish, they'll fight for the meal and have a low chance of reproduction as a consequence of energy waste. If a selfish organism meets an altruistic one, the first will take the food for himself and ensure his own reproduction, while his altruistic counterpart will have low chances reproductive success.
 
-## Some quick examples
+## Examples
 
-Here we see a *Sharing Simulation* with selfish (red) and altruistic (green) individuals in an environment of very abundant resources in the course of around 30 generations (1000 steps). In this case the altruistic popoulation shows a constant growth and surpasses the selfish one around the 15th generation. The selfish population grows until the 20th generation, when it begins to fall. The speed of the individuals plays no part, probably as a consequence of the extreme abundance of food.
+### Share with Starving Simulation
+
+Here we see a *Share with starving simulation*. Selfish (red) and altruistic (green) individuals 
+compete for food in an environment of very abundant resources in the course of around 
+30 generations (1000 steps). 
+
+In this case the altruistic popoulation shows a constant growth and surpasses the selfish one 
+around the 15th generation. The selfish population grows until the 20th generation, when it begins to fall.
+The speed of the individuals plays no part, probably as a consequence of the extreme abundance of food.
 
 
 ![Alt Text](https://media.giphy.com/media/5AW6l3xZx2gw71l4Rw/giphy.gif)
@@ -34,10 +42,48 @@ Here we see a *Sharing Simulation* with selfish (red) and altruistic (green) ind
 
 ![Evolutionary Data](https://i.ibb.co/pWwXMgm/data.png)
 
-The next is a *Share or take simulation* starting with 9 altruistic and 1 selfish individuals. We see the total population grow with a somewhat constant proportion of altruistic/selfish organisms until around generation 30, where selfish organisms succeed greatly and drive altruistic ones to extintion. This results in a tremendous drop of the total population and eventual extinction of the species around the 90th generation. A case of success of an evolutionary trait at the cost of the good of the species.
+### Hardy-Weinberg Equilibrium in Share or Take Simulations
 
-![Evolutionary Data](https://i.ibb.co/qpCnC9C/data-0.png)
+The next are two examples of Share Or Take Simulations in which a state of equilibrium is reached.
+The Hardy-Weinberg principle states that a constant frequence of an allele will remain in a population
+not affected by other evolutionary influences. It is interesting to study what the equilibrium is for
+altruistic/selfish alleles in different type of environments or with different species.
 
+#### Simulation A
+
+This simulation was carried in a highly abundant environment (**abundance factor=100**) 
+with an initial population of 9 altruistic and 1 selfish individuals. All organisms have a longevity
+of two generations. The selfish organisms of the species have 20% chances of reproducing after competing 
+for a food particle with another selfish individual; meeting altruistic individuals a 50% chance.
+On the case of an altruistic competing with a selfish individual, 20% and 80% reproduction chances
+are given respectively.
+
+We see the population quickly grow beyond the environment's carrying capacity and reach a constant number
+of around a thousand individuals, in a clear case of **logarithmic population growth**.
+
+An equilibrium of around 9/10 selfish individuals is reached and mantained around the 60th generation.
+
+
+![Evolutionary Data](https://i.ibb.co/YXWWsB7/total-pop-data-test-6.png)
+![Evolutionary Data](https://i.ibb.co/zGB6BbN/pop-growth-rate-data-test-6.png)
+![Evolutionary Data](https://i.ibb.co/QXcBBf3/percentual-pop-data-test-6.png)
+
+
+#### Simulation B
+
+All settings are the same as in Simulation A, except now selfish individuals have 0% chances of 
+mating after competing for food with another selfish individual. Now the equilibrium is reached at
+a proportion of around 40% selfish individuals in the population with a stable total population of 
+around 1500 indidivuals.
+
+![Evolutionary Data](https://i.ibb.co/NKx563S/total-pop-data-test-8.png)
+![Evolutionary Data](https://i.ibb.co/wz7QRyR/pop-growth-rate-data-test-8.png)
+![Evolutionary Data](https://i.ibb.co/gZ7RRRc/percentual-pop-data-test-8.png)
+
+By comparing the species of the Simulation A with the one of Simulation B we can see that higher risk
+implied in selfish behavior logically leads to an inferior amount of selfish individuals, which in turns
+seems to, in this particular case, benefit the entire species by reducing the chance of unfavourable
+mates and yielding a greater total population.
 
 ## State of development
 
