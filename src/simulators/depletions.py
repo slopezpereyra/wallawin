@@ -1,9 +1,9 @@
 import copy
-from wallawin.src.base_simulator import BaseSimulator
+from wallawin.src.simulators.base_simulator import BaseSimulator
 from random import randint
 from math import dist
 from wallawin.src.orgs import BaseOrganism
-from wallawin.src.settings import SIM_SETTINGS, PLOT_SETTINGS
+from wallawin.src.settings import PLOT_SETTINGS
 
 
 class DepletionEnvironment (BaseSimulator):

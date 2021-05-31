@@ -2,8 +2,9 @@ from matplotlib import pyplot
 from matplotlib.patches import Circle, Patch
 from wallawin.src.settings import PLOT_SETTINGS
 import numpy as np
-from os import mkdir
+import os
 
+DATA_PATH = os.path.abspath(os.pardir) + '/data'
 
 def plot_env(generation, food, step_num, gen_num):
     """Function that plots a particular step of the evolutionary simulation."""
@@ -52,7 +53,7 @@ def share_or_take_plot(data, name):
     pyplot.ylabel("Population")
     pyplot.fill_between(x_axis, y_pop_size)
     pyplot.fill_between(x_axis, abs_selfish_pop, facecolor="red")
-    pyplot.savefig("data/{}/total_pop_data_{}".format(name, name))
+    pyplot.savefig("{}/{}/total_pop_data_{}".format(DATA_PATH, name, name))
 
     y_selfish_percentage = np.array([data[x]['Selfish Population Percentage'] for x in range(0, len(x_axis))])
     y_alt_percentage = np.array([data[x]['Altruistic Population Percentage'] for x in range(0, len(x_axis))])
@@ -62,7 +63,7 @@ def share_or_take_plot(data, name):
     pyplot.ylabel("Population Percentage")
     pyplot.plot(x_axis, y_selfish_percentage, color='red')
     pyplot.plot(x_axis, y_alt_percentage, color='blue')
-    pyplot.savefig("data/{}/percentual_pop_data_{}".format(name, name))
+    pyplot.savefig("{}/{}/percentual_pop_data_{}".format(DATA_PATH, name, name))
 
     y_growth_rate = np.array([data[x]['Population Growth Rate'] for x in range(0, len(x_axis))])
 
@@ -70,9 +71,10 @@ def share_or_take_plot(data, name):
     pyplot.xlabel("Generations")
     pyplot.ylabel("Population Growth Rate")
     pyplot.plot(x_axis, y_growth_rate)
-    pyplot.savefig("data/{}/pop_growth_rate_data_{}".format(name, name))
+    pyplot.savefig("{}/{}/pop_growth_rate_data_{}".format(DATA_PATH, name, name))
 
 
 def save_simulation_settings(settings, name):
-    f = open('data/{}/settings.txt'.format(name), "w+")
+    os.mkdir('{}/{}'.format(DATA_PATH, name))
+    f = open('{}/{}/settings.txt'.format(DATA_PATH, name), "w+")
     f.write(str(settings))

@@ -8,7 +8,7 @@ Wallawin is an evolution simulation program with an emphasis on behavioral trait
 
 Wallawin simulates the process of evolution in an abstract space named Simulator. Moving through an abstract time unit, a Step, wich signifies a particular instance of the simulation, organisms live, reproduce, act and evolve.
 
-Simulations on different type of simulators correspond to simulations under different different rules. The general principle across different forms of simulation is that the chance of reproduction of an individual depends on the amount of food they were succesful to get.
+Simulations on different type of simulators correspond to simulations under different rules. The general principle across different forms of simulation is that the chance of reproduction of an individual depends on the amount of food they were succesful to get.
 
 ## Altruism Simulations
 
@@ -22,7 +22,7 @@ Selfish individuals will never share their extra food with other organisms, and 
 
 ### Share or take simulation
 
-All organisms are garanteed to find a meal, but a single meal may be found by two of them. If this is the case, they'll decide how to resolve this problem based on both of their altruistic alleles. If two altruistic individuals encounter each other, they'll split the meal ensuring a medium chance of reproduction for each of them. If both are selfish, they'll fight for the meal and have a low chance of reproduction as a consequence of energy waste. If a selfish organism meets an altruistic one, the first will take the food for himself and ensure his own reproduction, while his altruistic counterpart will have low chances reproductive success.
+All organisms are garanteed to find a meal, but a single meal may be found by two of them. If this is the case, they'll decide how to resolve this problem based on both of their altruistic alleles. If two altruistic individuals encounter each other, they'll split the meal ensuring a medium chance of reproduction for each of them. If both are selfish, they'll fight for the meal and have a low chance of reproduction as a consequence of energy waste. If a selfish organism meets an altruistic one, the first will take the food for himself and ensure his own reproduction, while his altruistic counterpart will have low chances of reproductive success.
 
 ## Examples
 

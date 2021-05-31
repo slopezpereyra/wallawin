@@ -107,7 +107,7 @@ class SimSettings:
         return string
 
 
-class TakeOrShareSettings(SimSettings):
+class DoveHawkSettings(SimSettings):
     """
         Specific class for TakeOrShare simulation settings.
 
@@ -246,4 +246,4 @@ class Traits:
         self.altruistic = altruistic
 
 
-TEST = TakeOrShareSettings(100, 10, 2, 100, simulation_name="test_1", base_longevity=33, static_food_generation=True)
+TEST = DoveHawkSettings(100, 10, 2, 100, simulation_name="test_1", base_longevity=33, static_food_generation=True)

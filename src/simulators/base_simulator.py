@@ -2,9 +2,11 @@
 It's where the magic happens."""
 
 from random import uniform, randint
-from math import floor, dist
+from math import floor
 from wallawin.src.data_representation import save_simulation_settings
 import os
+import copy
+import numpy as np
 
 
 class Food:
@@ -27,17 +29,17 @@ class BaseSimulator:
         (for simulations involving movement) and longevity.
         """
 
-    def __init__(self, sim_settings):
+    def __init__(self, sim_settings, org_traits):
         """Simulator object. Simulates the whole evolutionary process. Takes
         a Settings object as argument."""
 
         self.settings = sim_settings
+        self.org_traits = org_traits
         self.env_size = [self.settings.env_size_x, self.settings.env_size_y]
         self.generation = self.gen_population(sim_settings.pop_size)
         self.food = self.gen_food()
         self.data = {}
 
-        os.mkdir('data/{}'.format(self.settings.simulation_name))
         save_simulation_settings(self.settings, self.settings.simulation_name)
 
     def gen_food(self):
@@ -82,7 +84,25 @@ class BaseSimulator:
         ----------
         org: Organism
             The organism whose fitness is to be evaluated."""
-        pass
+
+        if org.meals == 0 and self.settings.starvation:
+            self.kill(org)
+            return
+
+        rep_chance = org.meals * self.settings.rep_factor
+        if randint(0, 100) <= rep_chance:
+            chiral = copy.deepcopy(org)
+            chiral.pos = np.array([uniform(0, self.settings.env_size_x), uniform(0, self.settings.env_size_y)])
+            chiral.age = 0
+            if randint(0, 100) <= self.settings.mutation_chance:
+                chiral.mutate()
+            self.generation.append(chiral)
+
+        if org.age >= org.traits.longevity:
+            self.kill(org)
+
+        org.pos = org.start_pos
+        org.meals = 0
 
     def sim_competition(self, organisms):
         """Base method to simulate the competition for food among a group of organisms.
