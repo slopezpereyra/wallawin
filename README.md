@@ -8,7 +8,7 @@ Wallawin is an evolution simulation program with an emphasis on behavioral trait
 
 Wallawin simulates the process of evolution in an abstract space named Simulator. Moving through an abstract time unit, a Step, wich signifies a particular instance of the simulation, organisms live, reproduce, act and evolve.
 
-Simulations on different type of simulators correspond to simulations under different rules. The general principle across different forms of simulation is that the chance of reproduction of an individual depends on the amount of food they were succesful to get.
+Simulations on different type of simulators correspond to simulations under different rules. The general principle across different forms of simulation is that the chance of reproduction of an individual depends on the amount of food they were succesful to get, though this is only a representation of their abstract adaptability.
 
 ## Altruism Simulations
 
