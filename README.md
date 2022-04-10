@@ -2,7 +2,7 @@
 
 ## What is it?
 
-Wallawin is an evolution simulation program with an emphasis on behavioral traits. In other words, it simulates the action of natural selection over behavioral traits across a series of generations. It's goal is to provide a computational model for hypothesis testing in evolutionary psychology.
+Wallawin is an evolution simulation program with an emphasis on behavioral traits. It simulates the action of natural selection on behavioral traits across a series of generations. Its goal is to provide a computational model for hypothesis testing in evolutionary psychology.
 
 ## How does it work
 
