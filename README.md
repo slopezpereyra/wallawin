@@ -2,13 +2,13 @@
 
 ## What is it?
 
-Wallawin is an evolution simulation program with an emphasis on behavioral traits. In other words, it simulates the action of natural selection over behavioral traits across a series of generations.
+Wallawin is an evolution simulation program with an emphasis on behavioral traits. In other words, it simulates the action of natural selection over behavioral traits across a series of generations. It's goal is to provide a computational model for hypothesis testing in evolutionary psychology.
 
 ## How does it work
 
-Wallawin simulates the process of evolution in an abstract space named Simulator. Moving through an abstract time unit, a Step, wich signifies a particular instance of the simulation, organisms live, reproduce, act and evolve.
+Wallawin simulates the process of evolution in an abstract space. Moving through an abstract time units that signify an individual instance of the evolutionary process, organisms live, reproduce, act and evolve.
 
-Simulations on different type of simulators correspond to simulations under different rules. The general principle across different forms of simulation is that the chance of reproduction of an individual depends on the amount of food they were succesful to get, though this is only a representation of their abstract adaptability.
+Simulations on different type of simulators correspond to simulations under different rules. The general principle across different forms of simulation is that the chance of reproduction of an individual depends on the amount of food they were succesful to get, though this is only a representation of their abstract adaptability and can be flexibly adjusted to fit other models.
 
 ## Altruism Simulations
 
@@ -65,8 +65,6 @@ An equilibrium of around 9/10 selfish individuals is reached and mantained aroun
 
 
 ![Evolutionary Data](https://i.ibb.co/YXWWsB7/total-pop-data-test-6.png)
-![Evolutionary Data](https://i.ibb.co/zGB6BbN/pop-growth-rate-data-test-6.png)
-![Evolutionary Data](https://i.ibb.co/QXcBBf3/percentual-pop-data-test-6.png)
 
 
 #### Simulation B
@@ -77,8 +75,6 @@ a proportion of around 40% selfish individuals in the population with a stable t
 around 1500 indidivuals.
 
 ![Evolutionary Data](https://i.ibb.co/NKx563S/total-pop-data-test-8.png)
-![Evolutionary Data](https://i.ibb.co/wz7QRyR/pop-growth-rate-data-test-8.png)
-![Evolutionary Data](https://i.ibb.co/gZ7RRRc/percentual-pop-data-test-8.png)
 
 By comparing the species of the Simulation A with the one of Simulation B we can see that higher risk
 implied in selfish behavior logically leads to an inferior amount of selfish individuals, which in turns
