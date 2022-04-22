@@ -6,9 +6,9 @@ Wallawin is an evolution simulation program with an emphasis on behavioral trait
 
 ## How does it work
 
-Wallawin simulates the process of evolution in an abstract space. Moving through an abstract time units that signify an individual instance of the evolutionary process, organisms live, reproduce, act and evolve.
+Wallawin simulates the process of evolution in an abstract space. Moving through an abstract time unit that signifies an individual instance of the evolutionary process, organisms live, reproduce, act and evolve.
 
-Simulations on different type of simulators correspond to simulations under different rules. The general principle across different forms of simulation is that the chance of reproduction of an individual depends on the amount of food they were succesful to get, though this is only a representation of their abstract adaptability and can be flexibly adjusted to fit other models.
+Simulations can be carried out on different type of simulators, which define different sets of rules. The general principle across different forms of simulation is that the chance of reproduction of an individual depends on the amount of food they were succesful to get. This, however, is only an operationalization of their abstract adaptability and can be flexibly adjusted to fit other models.
 
 ## Altruism Simulations
 
@@ -26,7 +26,7 @@ All organisms are garanteed to find a meal, but a single meal may be found by tw
 
 ## Examples
 
-### Charity Simulation
+### Charity Simulation A
 
 Here we see a *Charity simulation*. Selfish (red) and altruistic (green) individuals 
 compete for food in an environment of very abundant resources in the course of around 
@@ -49,7 +49,7 @@ The Hardy-Weinberg principle states that a constant frequence of an allele will 
 not affected by other evolutionary influences. It is interesting to study what the equilibrium is for
 altruistic/selfish alleles in different type of environments or with different species.
 
-#### Simulation A
+#### Dove Hawk Simulation A
 
 This simulation was carried in a highly abundant environment (**abundance factor=100**) 
 with an initial population of 9 altruistic and 1 selfish individuals. All organisms have a longevity
@@ -67,7 +67,7 @@ An equilibrium of around 9/10 selfish individuals is reached and mantained aroun
 ![Evolutionary Data](https://i.ibb.co/YXWWsB7/total-pop-data-test-6.png)
 
 
-#### Simulation B
+#### Dove Hawk Simulation B
 
 All settings are the same as in Simulation A, except now selfish individuals have 0% chances of 
 mating after competing for food with another selfish individual. Now the equilibrium is reached at
